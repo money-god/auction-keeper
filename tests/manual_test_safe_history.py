@@ -41,7 +41,7 @@ collateral_type = sys.argv[1] if len(sys.argv) > 1 else "ETH-A"
 collateral_type= geb.collaterals[collateral_type].collateral_type
 
 # on kovan 0.9.0 use 21461453
-from_block = int(sys.argv[2]) if len(sys.argv) > 2 else 21461453
+from_block = int(sys.argv[2]) if len(sys.argv) > 2 else 11000000
 
 
 def wait(minutes_to_wait: int, sh: SAFEHistory):
