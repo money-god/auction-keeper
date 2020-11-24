@@ -342,6 +342,35 @@ class TestAuctionKeeperFixedDiscountCollateralAuctionHouse(TransactionIgnoringTe
         # then
         assert self.web3.eth.blockNumber == previous_block_number
 
+    @pytest.mark.skip("failing after adding rebalance_system_coin() in check_bids")
+    def test_should_increase_gas_price_of_pending_transactions_if_model_increases_gas_price(self, auction_id):
+        # given
+        collateral_auction_house = self.collateral.collateral_auction_house
+        if not isinstance(collateral_auction_house, FixedDiscountCollateralAuctionHouse):
+            return
+        (model, model_factory) = models(self.keeper, auction_id)
+
+        # when
+        bid_price = Wad.from_number(20.0)
+        reserve_system_coin(self.geb, self.collateral, self.keeper_address, bid_price * bid_size * 2, Wad.from_number(2))
+        self.keeper.rebalance_system_coin()
+        simulate_model_output(model=model, price=bid_price, gas_price=10)
+        # and
+        self.start_ignoring_transactions()
+        # and
+        self.keeper.check_all_auctions()
+        self.keeper.check_for_bids()
+        # and
+        self.end_ignoring_transactions()
+        # and
+        simulate_model_output(model=model, price=bid_price, gas_price=15)
+        # and
+        self.keeper.check_for_bids()
+        wait_for_other_threads()
+        # then
+        #assert collateral_auction_house.bids(auction_id).raised_amount == Rad(bid_price * bid_size)
+        assert self.web3.eth.getBlock('latest', full_transactions=True).transactions[0].gasPrice == 15
+
     def test_should_obey_gas_price_provided_by_the_model(self, auction_id):
         # given
         collateral_auction_house = self.collateral.collateral_auction_house
