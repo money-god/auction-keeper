@@ -37,11 +37,12 @@ web3 = Web3(HTTPProvider(endpoint_uri=os.environ["ETH_RPC_URL"], request_kwargs=
 GRAPH_ENDPOINTS = ['https://api.thegraph.com/subgraphs/name/reflexer-labs/rai-kovan',
                    'https://subgraph-kovan.reflexer.finance/subgraphs/name/reflexer-labs/rai']
 geb = GfDeployment.from_node(web3)
-collateral_type = sys.argv[1] if len(sys.argv) > 1 else "ETH-A"
-collateral_type= geb.collaterals[collateral_type].collateral_type
+collateral_type_name = sys.argv[1] if len(sys.argv) > 1 else "ETH-A"
+collateral_type = geb.safe_engine.collateral_type(collateral_type_name)
+rate = collateral_type.accumulated_rate
 
 # on kovan 0.9.0 use 21461453
-from_block = int(sys.argv[2]) if len(sys.argv) > 2 else 21461453
+from_block = int(sys.argv[2]) if len(sys.argv) > 2 else 11000000
 
 
 def wait(minutes_to_wait: int, sh: SAFEHistory):
@@ -60,6 +61,13 @@ sh = SAFEHistory(web3, geb, collateral_type, from_block, None)
 safes_logs = sh.get_safes()
 elapsed: timedelta = datetime.now() - started
 print(f"Found {len(safes_logs)} safes from block {from_block} in {elapsed.seconds} seconds")
+
+"""
+for safe in safes_graph.values():
+    is_critical = safe.locked_collateral * collateral_type.liquidation_price < safe.generated_debt * rate
+    if is_critical:
+        print(f"critical: {safe}")
+"""
 
 wait(1, sh)
 

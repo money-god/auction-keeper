@@ -198,6 +198,7 @@ class AuctionKeeper:
             self.strategy = FixedDiscountCollateralAuctionStrategy(self.collateral_auction_house,
                                                                    self.min_collateral_lot,
                                                                    self.geb, self.our_address)
+            self.arguments.model = ['../models/collateral_model.sh']
 
             if self.arguments.create_auctions:
                 self.safe_history = SAFEHistory(self.web3, self.geb, self.collateral_type, self.arguments.from_block,
@@ -213,7 +214,7 @@ class AuctionKeeper:
         if self.arguments.model:
             model_command = ' '.join(self.arguments.model)
         else:
-            if self.arguments.bid_on_auctions and not isinstance(self.collateral_auction_house, FixedDiscountCollateralAuctionHouse):
+            if self.arguments.bid_on_auctions:
                 raise RuntimeError("--model must be specified to bid on auctions")
             else:
                 model_command = ":"
@@ -555,7 +556,7 @@ class AuctionKeeper:
                 if not self.auction_handled_by_this_shard(id):
                     continue
                 if isinstance(self.collateral_auction_house, FixedDiscountCollateralAuctionHouse):
-                    self.handle_fixed_discount_bid(id=id, auction=auction)
+                    self.handle_fixed_discount_bid(id=id, auction=auction, reservoir=reservoir)
                 else:
                     self.handle_bid(id=id, auction=auction, reservoir=reservoir)
 
@@ -629,7 +630,7 @@ class AuctionKeeper:
         # Feed the model with current state
         auction.feed_model(input)
 
-    def handle_fixed_discount_bid(self, id: int, auction: Auction):
+    def handle_fixed_discount_bid(self, id: int, auction: Auction, reservoir: Reservoir):
         assert isinstance(id, int)
         assert isinstance(auction, Auction)
 
@@ -637,7 +638,13 @@ class AuctionKeeper:
         if output is None:
             return
 
+        self.rebalance_system_coin()
+
         bid_price, bid_transact, cost = self.strategy.bid(id)
+
+        if cost is not None:
+            if not self.check_bid_cost(id, cost, reservoir, already_rebalanced=True):
+                return
 
         if bid_price is not None and bid_transact is not None:
             assert isinstance(bid_price, Wad)
