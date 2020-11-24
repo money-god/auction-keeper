@@ -79,6 +79,13 @@ safes_graph = sh.get_safes()
 elapsed: timedelta = datetime.now() - started
 print(f"Found {len(safes_graph)} safes from the Graph in {elapsed.seconds} seconds")
 
+"""
+for safe in safes_graph.values():
+    is_critical = safe.locked_collateral * collateral_type.liquidation_price < safe.generated_debt * rate
+    if is_critical:
+        print(f"critical: {safe}")
+"""
+
 wait(1, sh)
 
 # Reconcile the data

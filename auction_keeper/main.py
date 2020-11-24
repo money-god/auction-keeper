@@ -77,7 +77,7 @@ class AuctionKeeper:
         parser.add_argument('--max-auctions', type=int, default=1000,
                             help="Maximum number of auctions to simultaneously interact with, "
                                  "used to manage OS and hardware limitations")
-        parser.add_argument('--min-collateral-lot', type=float, default=0,
+        parser.add_argument('--min-collateral-lot', type=float, default=0.01,
                             help="Minimum lot size to create or bid upon a collateral auction")
         parser.add_argument('--bid-check-interval', type=float, default=4.0,
                             help="Period of timer [in seconds] used to check bidding models for changes")
@@ -198,6 +198,8 @@ class AuctionKeeper:
             self.strategy = FixedDiscountCollateralAuctionStrategy(self.collateral_auction_house,
                                                                    self.min_collateral_lot,
                                                                    self.geb, self.our_address)
+            self.arguments.model = ['../models/collateral_model.sh']
+
             self.arguments.model = ['../models/collateral_model.sh']
 
             if self.arguments.create_auctions:
@@ -639,7 +641,7 @@ class AuctionKeeper:
             return
 
         self.rebalance_system_coin()
-
+        
         bid_price, bid_transact, cost = self.strategy.bid(id)
 
         if cost is not None:
