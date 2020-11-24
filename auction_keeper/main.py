@@ -77,7 +77,7 @@ class AuctionKeeper:
         parser.add_argument('--max-auctions', type=int, default=1000,
                             help="Maximum number of auctions to simultaneously interact with, "
                                  "used to manage OS and hardware limitations")
-        parser.add_argument('--min-collateral-lot', type=float, default=0,
+        parser.add_argument('--min-collateral-lot', type=float, default=0.01,
                             help="Minimum lot size to create or bid upon a collateral auction")
         parser.add_argument('--bid-check-interval', type=float, default=4.0,
                             help="Period of timer [in seconds] used to check bidding models for changes")
@@ -199,6 +199,8 @@ class AuctionKeeper:
                                                                    self.min_collateral_lot,
                                                                    self.geb, self.our_address)
 
+            self.arguments.model = ['../models/collateral_model.sh']
+
             if self.arguments.create_auctions:
                 self.safe_history = SAFEHistory(self.web3, self.geb, self.collateral_type, self.arguments.from_block,
                                                 self.graph_endpoints)
@@ -213,7 +215,7 @@ class AuctionKeeper:
         if self.arguments.model:
             model_command = ' '.join(self.arguments.model)
         else:
-            if self.arguments.bid_on_auctions and not isinstance(self.collateral_auction_house, FixedDiscountCollateralAuctionHouse):
+            if self.arguments.bid_on_auctions:
                 raise RuntimeError("--model must be specified to bid on auctions")
             else:
                 model_command = ":"
@@ -555,7 +557,7 @@ class AuctionKeeper:
                 if not self.auction_handled_by_this_shard(id):
                     continue
                 if isinstance(self.collateral_auction_house, FixedDiscountCollateralAuctionHouse):
-                    self.handle_fixed_discount_bid(id=id, auction=auction)
+                    self.handle_fixed_discount_bid(id=id, auction=auction, reservoir=reservoir)
                 else:
                     self.handle_bid(id=id, auction=auction, reservoir=reservoir)
 
@@ -629,15 +631,22 @@ class AuctionKeeper:
         # Feed the model with current state
         auction.feed_model(input)
 
-    def handle_fixed_discount_bid(self, id: int, auction: Auction):
+    def handle_fixed_discount_bid(self, id: int, auction: Auction, reservoir: Reservoir):
         assert isinstance(id, int)
         assert isinstance(auction, Auction)
 
         output = auction.model_output()
         if output is None:
             return
-
+        print("rebalancing") 
+        self.rebalance_system_coin()
+        print("rebalancing done") 
+        
         bid_price, bid_transact, cost = self.strategy.bid(id)
+
+        if cost is not None:
+            if not self.check_bid_cost(id, cost, reservoir, already_rebalanced=True):
+                return
 
         if bid_price is not None and bid_transact is not None:
             assert isinstance(bid_price, Wad)
