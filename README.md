@@ -16,7 +16,7 @@ The keeper can be safely left running in background. The moment it notices or st
 
 ## Quickstart for Fixed Discount Collateral Auctions
 
-### 1) Send RAI (aka system coins) to your keeper address
+### 1) Send RAI (AKA system coins) to your keeper address
 
 Buy RAI from [Uniswap v2](https://info.uniswap.org/pair/0xEBdE9F61e34B7aC5aAE5A4170E964eA85988008C) or open a SAFE and generate some RAI.
 
