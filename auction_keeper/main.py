@@ -56,7 +56,7 @@ class AuctionKeeper:
 
         parser.add_argument("--rpc-uri", type=str, default="http://localhost:8545",
                             help="JSON-RPC endpoint URI with port (default: `http://localhost:8545')")
-        parser.add_argument("--rpc-timeout", type=int, default=10,
+        parser.add_argument("--rpc-timeout", type=int, default=60,
                             help="JSON-RPC timeout (in seconds, default: 10)")
         parser.add_argument("--eth-from", type=str, required=True,
                             help="Ethereum account from which to send transactions")
