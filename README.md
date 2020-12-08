@@ -139,6 +139,17 @@ done
 The model produces price(s) for the keeper. After the `sleep` period. the keeper will restart the price model and read new price(s).  
 Consider this your price update interval.
 
+### Collateral bidding model
+### Note: Collateral keepers buy collateral at a fixed discount and don't bid prices. So they use a blank model file. 
+
+```
+#!/usr/bin/env bash
+while true; do
+  echo "{}" 
+  sleep 120
+done
+```
+
 ### Other bidding models
 
 Thanks to our community for these examples:
