@@ -33,7 +33,7 @@ This will start a collateral `auction-keeper`. The keeper will use the Ethereum 
 ```
 docker run -it \
         -v /my_keystore_dir:/keystore \
-        reflexer/auction-keeper \
+        reflexer/auction-keeper:prai-demo \
         --rpc-uri http://localhost:8545 \
         --eth-from 0xEA674fdDe714fd979de3EdF0F56AA9716B898ec8 \
         --eth-key "key_file=/keystore/my_key.json"
@@ -343,6 +343,7 @@ This project uses [pytest](https://docs.pytest.org/en/latest/) for unit testing.
 In order to be able to run tests:
 ```
 git clone https://github.com/reflexer-labs/auction-keeper.git
+git checkout tags/prai-demo
 cd auction-keeper
 git submodule update --init --recursive
 ./install.sh
