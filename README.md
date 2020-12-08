@@ -14,7 +14,7 @@ The keeper can be safely left running in background. The moment it notices or st
 
 **NOTE**: _Bidding models_ are only used for surplus and debt auctions, not collateral auctions.
 
-## Quickstart for Fixed Discount Collateral Auctions
+## Quickstart for Fixed Discount Collateral Auctions: Run as a docker container
 
 ### 1) Send RAI (AKA system coins) to your keeper address
 
