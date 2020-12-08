@@ -10,13 +10,15 @@ The purpose of `auction-keeper` is to:
 
 `auction-keeper` can participate in collateral, surplus and debt auctions. It can read an auction's status from an Ethereum or a [Graph](https://thegraph.com/) node. Its unique feature is the ability to plug in external _bidding models_ which tell the keeper when and how much to bid.
 
-The keeper can be safely left running in background. The moment it notices or starts a new auction it will spawn a new instance of a _bidding model_ for it and then act according to its instructions. _Bidding models_ will be automatically terminated by the keeper the moment the auction expires.  The keeper can also settle expired auctions.
+The keeper can be safely left running in the background. The moment it notices or starts a new auction, it will spawn a new instance of a _bidding model_ and then act according to its instructions. _Bidding models_ will be automatically terminated by the keeper the moment the auction expires.  The keeper can also settle expired auctions (in the case of English auctions).
 
 **NOTE**: _Bidding models_ are only used for surplus and debt auctions, not collateral auctions.
 
-## Quickstart for Fixed Discount Collateral Auctions: Run as a docker container
+## Quickstart for Dockerized Fixed Discount Collateral Keeper
 
-### 1) Send RAI (AKA system coins) to your keeper address
+### 1) Send RAI (AK{
+
+  }A system coins) to your keeper address
 
 Buy RAI from [Uniswap v2](https://info.uniswap.org/pair/0xEBdE9F61e34B7aC5aAE5A4170E964eA85988008C) or open a SAFE and generate some RAI.
 
@@ -92,7 +94,7 @@ process and tries to parse them as JSON documents. Then it extracts two fields f
 
 ### Processing each bidding model output and submitting bids
 
-#### Sample model output from Debt Auction bidding model
+#### Sample model output from a Debt Auction bidding model
 
 A sample message sent from the debt model to the keeper may look like:
 
@@ -101,7 +103,7 @@ A sample message sent from the debt model to the keeper may look like:
 {"price": "250.0", "gasPrice": 70000000000}
 ```
 
-#### Sample model output from Surplus Auction bidding model
+#### Sample model output from a Surplus Auction bidding model
 
 A sample message sent from the debt model to the keeper may look like:
 
@@ -110,7 +112,7 @@ A sample message sent from the debt model to the keeper may look like:
 {"price": "150.0"}
 ```
 
-Any messages writen by a _bidding model_ to **stderr** will be passed through by the keeper to its logs.
+Any messages written by a _bidding model_ to **stderr** will be passed through by the keeper to its logs.
 This is the most convenient way of implementing logging from _bidding models_.
 
 **Currently no utility is provided to prevent you from bidding at an unprofitable price.**
@@ -125,7 +127,7 @@ while true; do
 done
 ```
 
-Gas price is optional. If you want to start with a fixed gas price, you can add it like this:
+Specifying a gas price is optional. If you want to start with a fixed gas price, you can add it like this:
 
 ```
 #!/usr/bin/env bash
@@ -139,13 +141,14 @@ done
 The model produces price(s) for the keeper. After the `sleep` period. the keeper will restart the price model and read new price(s).  
 Consider this your price update interval.
 
-### Collateral bidding model
-### Note: Collateral keepers buy collateral at a fixed discount and don't bid prices. So they use a blank model file. 
+### Collateral bidding models
+
+**Note:** Collateral keepers buy collateral at a fixed discount and don't bid prices. So they use a blank model file.
 
 ```
 #!/usr/bin/env bash
 while true; do
-  echo "{}" 
+  echo "{}"
   sleep 120
 done
 ```
@@ -153,7 +156,7 @@ done
 ### Other bidding models
 
 Thanks to our community for these examples:
- * *banteg*'s [Python boilerplate model](https://gist.github.com/banteg/93808e6c0f1b9b6b470beaba5a140813)
+ * *banteg*'s [python boilerplate model](https://gist.github.com/banteg/93808e6c0f1b9b6b470beaba5a140813)
 
 ## Limitations
 
@@ -177,7 +180,6 @@ continuously refresh safe state to detect undercollateralized SAFEs.
    * To manage resources, it is recommended to run separate keepers using separate accounts to bite (`--start-auctions-only`)
    and bid (`--bid-only`).
 
-
 For some known Ubuntu and macOS issues see the [pyflex](https://github.com/reflexer-labs/pyflex) README.
 
 # Usage
@@ -187,22 +189,22 @@ Run `bin/auction-keeper -h` without arguments to see an up-to-date list of argum
 ## General
 `--type collateral|surplus|debt`
   A keeper can only participate in one type of auction
-  
+
 `--collateral-type NAME`
-  If `--type=collateral` is passed, the collateral_type must also be provided. A keeper can only bid on one collateral type.
-  Note: Currently, only `ETH-A` collateral type is used.
-  
+  If `--type=collateral` is passed, the collateral_type must also be provided. A keeper can only bid on a single collateral type.
+  Note: Currently, only the `ETH-A` collateral type is used.
+
 `--eth-from ADDRESS`
   Address of the keeper.
-  Warnings: **Do not use the same `eth-from` account on multiple keepers** as it complicates SAFEEngine inventory management and
+  Warnings: **Do not use the same `eth-from` account on multiple keepers** as it complicates `SAFEEngine` inventory management and
   will likely cause nonce conflicts.  Using an `eth-from` account with an open SAFE is also discouraged.
-  
+
 `--rpc-host HOST`
-   URI of ETH JSON-RPC node. 
+   URI of ETH JSON-RPC node.
    Default `"http://localhost:8545"`
-   
+
 `--rpc-timeout SECS`
-   Default `10` 
+   Default `10`
 
    This keeper connects to the Ethereum network using [Web3.py](https://github.com/ethereum/web3.py) and interacts with
    the GEB using [pyflex](https://github.com/reflexer-labs/pyflex).  A connection to an Ethereum node
@@ -220,34 +222,30 @@ The following options determine the keeper's gas strategy and are mutually exclu
 
 `--ethgasstation-api-key MY_API_KEY`
     Use [ethgasstation.info](https://ethgasstation.info) for gas prices
-    
+
 `--etherchain-gas-price`
     Use [etherchain.org](https://etherchain.org) for gas prices
-    
-`--poanetwork-gas-price`
-    Use [POA Network](https://poa.network) for gas prices
-    An alternate URL can be passed as `--poanetwork-url`
-    
+
  `--fixed-gas-price GWEI`
     Use a fixed gas price in GWEI
-    
+
  If none of these options is given or the gas API produces not result, the keeper will use gas price from your node.
- 
+
 ## Other gas options
 
 `--gas-initial-multiplier MULTIPLIER`
-   When using an API source for initial gas price, tunes initial gas price. 
+   When using an API source for initial gas price, tunes initial gas price.
    Ignored when using `--fixed-gas-price` or no strategy is given
    default `1.0`
-   
+
 `--gas-reactive-multiplier MULTIPLIER`
    Every 30 seconds, a transaction's gas price will be multiplied by this value until it is mined or `--gas-maxiumum` is reached.
-   Not used if `gasPrice` is passed from your bidding model. 
+   Not used if `gasPrice` is passed from your bidding model.
    Note: [Parity](https://wiki.parity.io/Transactions-Queue#dropping-conditions), as of this writing, requires a
          minimum gas increase of `1.125` to propagate transaction replacement; this should be treated as a minimum
          value unless you want replacements to happen less frequently than 30 seconds (2+ blocks).
    default `1.125`
-   
+
 `--gas-maximum GWEI`
    Maximum value for gas price
 
@@ -258,15 +256,15 @@ The keeper provides facilities for managing `SAFEEngine` balances, which may be 
 
 `--keep-system-coin-in-safe-engine-on-exit`
    Do not `exit` system coin on shutdown
-   
+
 `--keep-collateral-in-safe-engine-on-exit`
    Do not `exit` collateral on shutdown
-   
+
 `--return-collateral-interval SECS`
    Interval to `exit` won collateral to auction-keeper. Pass `0` to disable completely.
    default `300`
-   
-`--safe-engine-system-coin-target  ALL|<integer>` 
+
+`--safe-engine-system-coin-target  ALL|<integer>`
    Amount of system-coin the keeper will try to keep in the `SAFEEngine` through rebalancing with `join`s and `exit`s.
    By default, there is no target.
 
@@ -276,55 +274,53 @@ The keeper provides facilities for managing `SAFEEngine` balances, which may be 
        - The keeper starts up
        - `SAFEEngine` balance is insufficient to place a bid
        - An auction is settled
-       
+
      To avoid transaction spamming, small "dusty" system coins balances will be ignored (until the keeper exits, if so configured).
 
 ## Managing resources
 
-### Retrieving SAFE
+### Retrieving SAFEs
 
-To start collateral auctions, the keeper needs a list of SAFEs and the collateralization ratio of each safe.  There are
-two ways to retrieve the list of SAFEs:
+To start collateral auctions, the keeper needs a list of SAFEs and the collateralization ratio of each safe. There are two ways to retrieve the list of SAFEs:
 
 `--from-block BLOCK_NUMBER`
    Scrape the chain for `ModifySAFECollateralization` events, starting at `BLOCK_NUMBER`
    Set this to the block where the first safe was created. After startup, only new blocks will be queried.
    NOTE: This can take significant time as the system matures.
-   NOTE: To manage performance for debt auctions, periodically adjust `--from-block` to the block where the first liquidation 
+   NOTE: To manage performance for debt auctions, periodically adjust `--from-block` to the block where the first liquidation
    which has not been `popDebtFromQueue`.
-   
+
  `--subgraph-endpoints NODE1,NODE2`
    Comma-delimited list of [Graph](https://thegraph.com) endpoints to retrieve `ModifySAFECollateralization` events.
    If multiple endpoints are specified, they will be tried in order if a communication failure occurs.
    NOTE: Currently only supported for collateral auctions
    Example with current Reflexer Graph endpoints:
    `--graph-endpoints https://api.thegraph.com/subgraphs/name/reflexer-labs/prai-mainnet,https://subgraph.reflexer.finance/subgraphs/name/reflexer-labs/prai`
-   
+
 ### Auctions
 
 `--min-auction AUCTION_ID`
-   Ignore auctions older than `AUCTION_ID` 
-   
+   Ignore auctions older than `AUCTION_ID`
+
 `--max-auctions NUMBER` a
    Limit the number of bidding models created to handle active auctions.  
-   
+
  Both switches help reduce the number of _requests_ (not just transactions) made to the node.
 
 ### Sharding/Settling
 
-Bid management can be sharded across multiple keepers by **auction id**.  If sharding, set these options
+Bid management can be sharded across multiple keepers by **auction id**.  If you proceed with sharding, set these options:
 
 `--shards NUMBER_OF_KEEPER`
    Number of keepers you will run. Set on all keepers
-   
-`--shard-id SHARD_ID` 
+
+`--shard-id SHARD_ID`
    Set on each keeper, counting from 0.  
-   For example, to configure three keepers, set `--shards 3` and assign `--shard-id 0`, `--shard-id 1`, `--shard-id 2` 
+   For example, to configure three keepers, set `--shards 3` and assign `--shard-id 0`, `--shard-id 1`, `--shard-id 2`
    for the three keepers.  
    Note: **Auction starts are not sharded**. For an auction contract, only one keeper should be configured to `startAuction`.
 
-
-If you are sharding across multiple accounts, you may wish to have another account handle all your `settleAuction`s. 
+If you are sharding across multiple accounts, you may wish to have another account handle all your `settleAuction`s.
 
 `--settle-for <ACCOUNT1 ACCOUNT2>|NONE|ALL`
    Space-delimited list of accounts for which keeper will settle auctions or `NONE` to disable. If you'd like to donate your gas
@@ -344,8 +340,7 @@ to settle auctions for all participants, `ALL` is also supported.
 
 ## Testing
 
-This project uses [pytest](https://docs.pytest.org/en/latest/) for unit testing.  Testing depends upon on a Dockerized
-local testchain included in `lib\pyflex\tests\config`.
+This project uses [pytest](https://docs.pytest.org/en/latest/) for unit testing. Testing depends upon a dockerized local testchain included in `lib\pyflex\tests\config`.
 
 In order to be able to run tests:
 ```
