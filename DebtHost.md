@@ -48,7 +48,7 @@ Create a file called  `run_auction_keeper.sh` and paste the following code in it
 #!/bin/bash
 bin/auction-keeper \
      --type debt \
-     --model ./collateral_model.sh \
+     --model debt_model.sh \
      --rpc-uri <ETH_RPC_URL> \
      --eth-from <KEEPER_ADDRESS> \
      --eth-key key_file=<KEYSTORE_FILE>       
