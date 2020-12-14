@@ -42,12 +42,20 @@ Get an auction-keeper up quickly, running in a docker container.
 
 * [Debt](./DebtDocker.md)
 
-## Running on a host
+## Running on a Host
 
-### Pre-requisites
-* Add pre-reqs
+Pre-requisites:
+Python 3.6+
 
-### Examples
+```
+git clone https://github.com/makerdao/auction-keeper.git
+cd auction-keeper
+git submodule update --init --recursive
+pip3 install -r requirements.txt
+```
+Keeper can now be run with `bin/auction-keeper`
+
+Examples:
 
 * [Collateral](./CollateralHost.md)
 
