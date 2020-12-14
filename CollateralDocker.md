@@ -17,7 +17,7 @@ docker run -it \
 	reflexer/auction-keeper:prai-demo \
         --rpc-uri <ETH_RPC_URL> \
         --eth-from <KEEPER ADDRESS> \
-        --eth-key "key_file=/keystore/<KEYSTORE FILE>"
+        --eth-key key_file=/keystore/<KEYSTORE FILE>
         
 ```
 
@@ -37,11 +37,11 @@ For more information about this keystore format and how to generate them:
 
 `KEEPER_ADDRESS` - The keeper's address. It should be in checksummed format(not lowercase).
 
-## 3) Make the keeper script runnable
+### Then
 
 `chmod +x run_auction_keeper.sh`
 
-## 4\) Start the keeper and enter your keystore file password
+## 3) Start the keeper and enter your keystore file password
 
 `./run_auction_keeper.sh`
 
