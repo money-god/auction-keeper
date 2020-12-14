@@ -1,4 +1,5 @@
-# Running a Debt Auction Keeper(not currently available on PRAI Demo)
+# Running a Debt Auction Keeper in Docker
+**_Not currently available on PRAI Demo_**
 
 ## 1) Get RAI
 
@@ -27,7 +28,7 @@ docker run -it \
   -v <KEYSTORE_DIR>:/keystore \
   -v <MODEL_DIR>:/models \
 	reflexer/auction-keeper:prai-demo \
-        --type surplus \
+        --type debt \
         --model /models/debt_model.sh \
         --rpc-uri <ETH_RPC_URL> \
         --eth-from <KEEPER_ADDRESS> \
