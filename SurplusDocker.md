@@ -5,7 +5,9 @@
 
 Buy FLX from [Uniswap v2](https://info.uniswap.org/pair)
 
-## 2) Pick a FLX/RAI price and paste the following code into `surplus_model.sh`. 
+## 2) Create a model file 
+
+Pick a FLX/RAI price and paste the following code into `surplus_model.sh`. 
 
 ```
 #!/usr/bin/env bash
@@ -14,9 +16,13 @@ while true; do
   sleep 120                   
 done
 ```
+### Then
+
+`chmod +x surplus_model.sh`
+
 For more information about bidding models, see [here](./BiddingModels.md)
 
-## 2) Create the keeper run file.
+## 3) Create the keeper run file.
 
 Create a file called  `run_auction_keeper.sh` and paste the following code in it:
 
@@ -53,11 +59,11 @@ For more information about this keystore format and how to generate them:
 
 `KEEPER_ADDRESS` - The keeper's address. It should be in checksummed format(not lowercase).
 
-## 3) Make the keeper script runnable
+### Then
 
 `chmod +x run_auction_keeper.sh`
 
-## 4\) Start the keeper and enter your keystore file password
+## 4) Start the keeper and enter your keystore file password
 
 `./run_auction_keeper.sh`
 
