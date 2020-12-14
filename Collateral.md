@@ -1,13 +1,11 @@
 # Running a collateral keeper
 
-## Quickstart:
-
-### 1) Get RAI
+## 1) Get RAI
 
 Buy RAI from [Uniswap v2](https://info.uniswap.org/pair/0xEBdE9F61e34B7aC5aAE5A4170E964eA85988008C) or 
 [open a SAFE](https://app.gitbook.com/@reflexer-labs/s/geb/pyflex/safe-management/opening-a-safe) and generate it.
 
-### 2\) Create the keeper run file.
+## 2) Create the keeper run file.
 
 Create a file called  `run_auction_keeper.sh` and paste the following code in it:
 
@@ -23,7 +21,7 @@ docker run -it \
         
 ```
 
-#### Then, substitute the following variables:
+### Then, substitute the following variables:
 
 `KEYSTORE_DIR` - this must be the local directory where your keystore file is.
 
@@ -39,11 +37,11 @@ For more information about this keystore format and how to generate them:
 
 `KEEPER_ADDRESS` - this is your keeper's address. It should be in checksummed format, not lowercase
 
-### 3\) Make the keeper script runnable
+## 3) Make the keeper script runnable
 
 `chmod +x run_auction_keeper.sh`
 
-### 4\) Run the keeper
+## 4\) Run the keeper
 
 `./run_auction_keeper.sh`
 
@@ -57,7 +55,7 @@ docker.io/reflexer/auction-keeper:latest
 Password for /keystore/key.json: 
 ```
 
-### 5\) Enter your keystore file password
+## 5) Enter your keystore file password
 
 **NOTE**: If using the Infura free-tier and you wish to stay under the 100k requests/day quota, add `--block-check-interval 10` and `--bid-check-interval 180` to `run_auction_keeper.sh`. However, this will make your keeper slower in responding to collateral auctions.
 
