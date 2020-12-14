@@ -1,4 +1,5 @@
-# Running a Surplus Auction Keeper(not currently available on PRAI Demo)
+# Running a Surplus Auction Keeper in Docker
+**_Not currently available on PRAI Demo_**
 
 ## 1) Get FLX
 
