@@ -45,7 +45,7 @@ Create a file called  `run_auction_keeper.sh` and paste the following code in it
 ```text
 #!/bin/bash
 bin/auction-keeper \
-    --type surplus \
+    --type collateral \
      --model ./collateral_model.sh \
      --rpc-uri <ETH_RPC_URL> \
      --eth-from <KEEPER_ADDRESS> \
