@@ -1,4 +1,5 @@
-### Ensure bidding model is running for each active auction
+## Bidding Models
+
 
 `auction-keeper` maintains a collection of child processes, as each bidding model is its own dedicated process. New processes (new _bidding model_ instances) are spawned by executing the command passed to `--model`. These processes are automatically terminated (via `SIGKILL`) by the keeper shortly after their associated auction expires.
 
