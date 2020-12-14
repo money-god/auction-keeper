@@ -23,7 +23,7 @@ The keeper is responsible with:
 
 `auction-keeper` can read an auction's status diretly from the Ethereum blockchain or a [Graph](https://thegraph.com/) node. Its unique feature is the ability to plug in external _bidding models_ which tell the keeper when and how much to bid. Bid prices are received from separate _bidding models_.
 
-_Bidding models_ are simple processes that can be implemented in any programming language. They only need to pass JSON objects to and from `auction-keeper`. The simplest example of a bidding model is a shell script which echoes a fixed price.
+_Bidding models_ are simple processes that can be implemented in any programming language. They only need to pass JSON objects to and from `auction-keeper`. The simplest example of a bidding model is a shell script which echoes a fixed price. Read more about bidding models [here.](./BiddingModels.md)
 
 
 For every new block, all auctions from `1` to `auctionsStarted` are checked for active status.
