@@ -31,8 +31,8 @@ If a new auction is detected, a new bidding model is started.
 
 **NOTE**: _Bidding models_ are only used for surplus and debt auctions, not collateral auctions.
 
-## Running an auction keeper
-Follow these links for details on running each type of keeper.
+## Quickstart
+Get an auction-keeper up quickly, running in a docker container.
 
 * [Collateral](./Collateral.md)
 
@@ -40,7 +40,7 @@ Follow these links for details on running each type of keeper.
 
 * [Debt](./Debt.md)
 
-# Usage
+# Configuration Reference
 
 Run `bin/auction-keeper -h` without arguments to see an up-to-date list of arguments and usage information.
 
