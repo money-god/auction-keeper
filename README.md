@@ -34,7 +34,8 @@ If a new auction is detected, a new bidding model is started.
 # Installation
 
 ## Running on Docker(recommended)
-Get an auction-keeper up quickly, running in a docker container.
+
+Examples:
 
 * [Collateral](./CollateralDocker.md)
 
