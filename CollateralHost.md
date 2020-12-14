@@ -9,7 +9,7 @@ Buy RAI from [Uniswap v2](https://info.uniswap.org/pair/0xEBdE9F61e34B7aC5aAE5A4
 [open a SAFE](https://app.gitbook.com/@reflexer-labs/s/geb/pyflex/safe-management/opening-a-safe) and generate it.
 
 
-#### Clone and install
+#### Clone
 ```
 git clone https://github.com/reflexer-labs/auction-keeper.git
 cd auction-keeper
@@ -17,7 +17,8 @@ git checkout tags/prai-demo
 git submodule update --init --recursive
 ```
 
-`install.sh` creates a virtual environment and installs requirements.
+#### Install
+This creates a virtual environment and installs requirements.
 
 `./install.sh`
 
