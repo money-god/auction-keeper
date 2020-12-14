@@ -56,6 +56,3 @@ Password for /keystore/key.json:
 ```
 
 ## 5) Enter your keystore file password
-
-**NOTE**: If using the Infura free-tier and you wish to stay under the 100k requests/day quota, add `--block-check-interval 10` and `--bid-check-interval 180` to `run_auction_keeper.sh`. However, this will make your keeper slower in responding to collateral auctions.
-
