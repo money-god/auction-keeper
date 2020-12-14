@@ -69,7 +69,7 @@ class AuctionKeeper:
         parser.add_argument('--bid-only', dest='create_auctions', action='store_false',
                             help="Do not take opportunities to create new auctions")
         parser.add_argument('--start-auctions-only', dest='bid_on_auctions', action='store_false',
-                            help="Do not bid on auctions")
+                            help="Do not bid on auctions. This includes flash swaps")
         parser.add_argument('--settle-auctions-for', type=str, nargs="+",
                             help="List of addresses for which auctions will be settled")
         parser.add_argument('--min-auction', type=int, default=0,
@@ -109,6 +109,8 @@ class AuctionKeeper:
                             help="After exiting won collateral, swap it on Uniswap for system coin")
         parser.add_argument('--max-swap-slippage', type=float, default=0.01,
                             help="Maximum amount of slippage allowed when swapping collateral")
+        parser.add_argument('--flash-swap', dest='flash_swap', action='store_true',
+                            help="Use uniswap flash swaps to liquidate and settle auctions. No system coin or collateral is needed")
         parser.add_argument("--model", type=str, nargs='+',
                             help="Commandline to use in order to start the bidding model")
 
@@ -161,6 +163,9 @@ class AuctionKeeper:
         if self.arguments.type == 'debt' and self.arguments.create_auctions \
                 and self.arguments.from_block is None:
             raise RuntimeError("--from-block must be specified to start debt auctions")
+
+        if self.arguments.type != 'collateral' and self.arguments.flash_swap:
+            raise RuntimeError("--flash-swap is only supported with --type=collateral")
 
         # Configure core and token contracts
         self.geb = GfDeployment.from_node(web3=self.web3)
@@ -237,15 +242,16 @@ class AuctionKeeper:
         # Configure account(s) for which we'll settle auctions
         self.settle_all = False
         self.settle_auctions_for = set()
-        if self.arguments.settle_auctions_for is None:
-            self.settle_auctions_for.add(self.our_address)
-        elif len(self.arguments.settle_auctions_for) == 1 and self.arguments.settle_auctions_for[0].upper() in ["ALL", "NONE"]:
-            if self.arguments.settle_auctions_for[0].upper() == "ALL":
-                self.settle_all = True
-            # else no auctions will be settled
-        elif len(self.arguments.settle_auctions_for) > 0:
-            for account in self.arguments.settle_auctions_for:
-                self.settle_auctions_for.add(Address(account))
+        if self.arguments.type != 'collateral': # collateral auctions are not settled
+            if self.arguments.settle_auctions_for is None:
+                self.settle_auctions_for.add(self.our_address)
+            elif len(self.arguments.settle_auctions_for) == 1 and self.arguments.settle_auctions_for[0].upper() in ["ALL", "NONE"]:
+                if self.arguments.settle_auctions_for[0].upper() == "ALL":
+                    self.settle_all = True
+                # else no auctions will be settled
+            elif len(self.arguments.settle_auctions_for) > 0:
+                for account in self.arguments.settle_auctions_for:
+                    self.settle_auctions_for.add(Address(account))
 
         # reduce logspew
         logging.getLogger('urllib3').setLevel(logging.INFO)
@@ -389,21 +395,27 @@ class AuctionKeeper:
 
         # Look for critical safes and liquidate them
         safes = self.safe_history.get_safes()
-        logging.debug(f"Evaluating {len(safes)} {self.collateral_type} safes to be liquidated if any are critical")
+        self.logger.debug(f"Evaluating {len(safes)} {self.collateral_type} safes to be liquidated if any are critical")
 
         for safe in safes.values():
             is_critical = safe.locked_collateral * collateral_type.liquidation_price < safe.generated_debt * rate
             if is_critical:
-                if self.arguments.bid_on_auctions and available_system_coin == Wad(0):
+                # If flash swap enabled, use flash proxy to liquidate and settle
+                if self.arguments.flash_swap and self.arguments.bid_on_auctions:
+                    self.logger.info(f"Using flash swap to liquidate and settle safe {safe}")
+                    self._run_future(self.geb.flash_proxy.liquidate_and_settle_safe(safe).transact_async(gas=800000, gas_price=self.gas_price))
+
+                elif self.arguments.bid_on_auctions and available_system_coin == Wad(0):
                     self.logger.warning(f"Skipping opportunity to liquidation safe {safe.address} "
                                         "because there is no system coin to bid")
                     break
 
-                if safe.locked_collateral < self.min_collateral_lot:
+                elif safe.locked_collateral < self.min_collateral_lot:
                     self.logger.info(f"Ignoring safe {safe.address.address} with locked_collateral={safe.locked_collateral} < "
                                      f"min_lot={self.min_collateral_lot}")
                     continue
-                self._run_future(self.liquidation_engine.liquidate_safe(collateral_type, safe).transact_async(gas_price=self.gas_price))
+                else:
+                    self._run_future(self.liquidation_engine.liquidate_safe(collateral_type, safe).transact_async(gas_price=self.gas_price))
 
         self.logger.info(f"Checked {len(safes)} safes in {(datetime.now()-started).seconds} seconds")
         # LiquidationEngine.liquidate implicitly starts the collateral auction; no further action needed.
@@ -525,7 +537,11 @@ class AuctionKeeper:
                 # If we're not bidding, don't produce a price model for the auction
                 if not self.arguments.bid_on_auctions:
                     continue
-
+             
+                # use flash proxy to settle auction
+                if self.arguments.type == 'collateral' and self.flash_swap:
+                    self.logger.info(f"Using flash swap to settle auction {id}")
+                    self.geb.flash_proxy.settle_auction(id).transact(gas=400000)
                 # Prevent growing the auctions collection beyond the configured size
                 if len(self.auctions.auctions) < self.arguments.max_auctions:
                     self.feed_model(id)
@@ -557,10 +573,7 @@ class AuctionKeeper:
 
                 if not self.auction_handled_by_this_shard(id):
                     continue
-                if isinstance(self.collateral_auction_house, FixedDiscountCollateralAuctionHouse):
-                    self.handle_fixed_discount_bid(id=id, auction=auction, reservoir=reservoir)
-                else:
-                    self.handle_bid(id=id, auction=auction, reservoir=reservoir)
+                self.handle_fixed_discount_bid(id=id, auction=auction, reservoir=reservoir)
 
     # TODO if we will introduce multithreading here, proper locking should be introduced as well
     #     locking should not happen on `auction.lock`, but on auction.id here. as sometimes we will
@@ -594,6 +607,7 @@ class AuctionKeeper:
             return False
 
         # Check if the auction is finished.  If so configured, `restart_auction` or `settle_auction` the auction synchronously.
+        # only for debt and surplus auctions
         elif auction_finished:
             if input.bid_expiry == 0:
                 if self.arguments.create_auctions:
