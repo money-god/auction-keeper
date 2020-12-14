@@ -40,6 +40,30 @@ Follow these links for details on running each type of keeper.
 
 * [Debt](./Debt.md)
 
+## Limitations
+
+* If an auction started before the keeper was started, this keeper will not participate in it until the next block
+is mined.
+* This keeper does not explicitly handle global settlement, and may submit transactions which fail during shutdown.
+* Some keeper functions incur gas fees regardless of whether a bid is submitted.  This includes, but is not limited to,
+the following actions:
+  * submitting approvals
+  * adjusting the balance of surplus to debt
+  * queuing debt for auction
+  * liquidating a SAFE or starting a surplus or debt auction
+* The keeper does not check model prices until an auction exists.  When configured to create new auctions, it will
+`liquidateSAFE`, start a new surplus or debt auction in response to opportunities regardless of whether or not your RAI or
+protocol token balance is sufficient to participate.  This too imposes a gas fee.
+* Liquidating SAFEs to start new collateral auctions is an expensive operation.  To do so without a subgraph
+subscription, the keeper initializes a cache of safe state by scraping event logs from the chain.  The keeper will then
+continuously refresh safe state to detect undercollateralized SAFEs.
+   * Despite batching log queries into multiple requests, Geth nodes are generally unable to initialize the safe state
+   cache in a reasonable amount of time.  As such, Geth is not recommended for liquidating SAFEs.
+   * To manage resources, it is recommended to run separate keepers using separate accounts to bite (`--start-auctions-only`)
+   and bid (`--bid-only`).
+
+For some known Ubuntu and macOS issues see the [pyflex](https://github.com/reflexer-labs/pyflex) README.
+
 
 ## Testing
 
