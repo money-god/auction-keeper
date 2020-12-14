@@ -162,6 +162,15 @@ To start collateral auctions, the keeper needs a list of SAFEs and the collatera
 
 `--max-auctions NUMBER` a
    Limit the number of bidding models created to handle active auctions.  
+   
+   **NOTE**: If using the Infura free-tier and you wish to stay under the 100k requests/day quota, 
+`--block-check-interval <integer>, default:1`
+   How often tocheck for new blocks
+   
+`--bid-check-interval <integer>, default 4` 
+    How often to check model process for new bid
+    
+Note: To use Infura free-tier and stay under the 100k requests/day quota, `--block-check-interval` must be greater than `10` and `--bid-check-interval must be greater than 180`.  However, this will make your keeper slower in responding to collateral auctions.
 
  Both switches help reduce the number of _requests_ (not just transactions) made to the node.
 
