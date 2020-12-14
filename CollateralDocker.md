@@ -1,4 +1,4 @@
-# Running a collateral keeper in docker
+# Running a Collateral Keeper in Docker
 
 ## 1) Get RAI
 
