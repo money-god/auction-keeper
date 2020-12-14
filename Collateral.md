@@ -25,7 +25,7 @@ docker run -it \
 
 `KEYSTORE_DIR` - this must be the local directory where your keystore file is.
 
-`KEYSTORE_FILE` Your Ethereum UTC JSON wallet.
+`KEYSTORE_FILE` - Your Ethereum UTC JSON keystore filename
 
 For more information about this keystore format and how to generate them:
 
