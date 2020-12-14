@@ -37,7 +37,7 @@ docker run -it \
         --model /models/debt_model.sh \
         --rpc-uri <ETH_RPC_URL> \
         --eth-from <KEEPER_ADDRESS> \
-        --eth-key "key_file=/keystore/<KEYSTORE_FILE>"
+        --eth-key key_file=/keystore/<KEYSTORE_FILE>
         
 ```
 
@@ -69,10 +69,9 @@ For more information about this keystore format and how to generate them:
 
 ```text
 $ ./run_auction_keeper.sh
-Using default tag: latest
-latest: Pulling from reflexer/auction-keeper
-Digest: sha256:5d75a47028a0867b618b568269d985ac4a68ea8c63a920ac18093db3c3064134
-Status: Image is up to date for reflexer/auction-keeper:latest
-docker.io/reflexer/auction-keeper:latest
+prai-demo: Pulling from reflexer/auction-keeper
+Digest: sha256:7e55ec9b0a136fc903d9f7f2690538bcbde9029d957e0e6f84d0282790f9666a
+Status: Downloaded newer image for reflexer/auction-keeper:prai-demo
+docker.io/reflexer/auction-keeper:prai-demo
 Password for /keystore/key.json: 
 ```
