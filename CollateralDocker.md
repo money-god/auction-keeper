@@ -1,4 +1,4 @@
-# Running a collateral keeper
+# Running a collateral keeper in docker
 
 ## 1) Get RAI
 
@@ -41,7 +41,7 @@ For more information about this keystore format and how to generate them:
 
 `chmod +x run_auction_keeper.sh`
 
-## 4\) Run the keeper
+## 4\) Start the keeper and enter your keystore file password
 
 `./run_auction_keeper.sh`
 
@@ -54,5 +54,3 @@ Status: Image is up to date for reflexer/auction-keeper:latest
 docker.io/reflexer/auction-keeper:latest
 Password for /keystore/key.json: 
 ```
-
-## 5) Enter your keystore file password
