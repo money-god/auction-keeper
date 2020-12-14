@@ -51,6 +51,7 @@ Python 3.6+
 ```
 git clone https://github.com/makerdao/auction-keeper.git
 cd auction-keeper
+git checkout tags/prai-demo
 git submodule update --init --recursive
 pip3 install -r requirements.txt
 ```
@@ -264,8 +265,8 @@ This project uses [pytest](https://docs.pytest.org/en/latest/) for unit testing.
 In order to be able to run tests:
 ```
 git clone https://github.com/reflexer-labs/auction-keeper.git
-git checkout tags/prai-demo
 cd auction-keeper
+git checkout tags/prai-demo
 git submodule update --init --recursive
 ./install.sh
 source _virtualenv/bin/activate
