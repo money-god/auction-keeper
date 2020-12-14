@@ -23,7 +23,7 @@ docker run -it \
 
 ### Then, substitute the following variables:
 
-`KEYSTORE_DIR` - this must be the local directory where your keystore file is.
+`KEYSTORE_DIR` - The local directory where your keystore file is.
 
 `KEYSTORE_FILE` - Your Ethereum UTC JSON keystore filename
 
@@ -33,9 +33,9 @@ For more information about this keystore format and how to generate them:
 
 * [keythereum](https://github.com/ethereumjs/keythereum)
 
-`ETH_RPC_URL` - this is the URL of ethereum RPC connection
+`ETH_RPC_URL` - The URL of ethereum RPC connection
 
-`KEEPER_ADDRESS` - this is your keeper's address. It should be in checksummed format, not lowercase
+`KEEPER_ADDRESS` - The keeper's address. It should be in checksummed format(not lowercase).
 
 ## 3) Make the keeper script runnable
 
