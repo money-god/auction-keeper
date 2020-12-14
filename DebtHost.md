@@ -37,6 +37,8 @@ while true; do
   sleep 120                   
 done
 ```
+### Then
+`chmod +x debt_model.sh`
 
 ## 3) Create the keeper run file.
 
