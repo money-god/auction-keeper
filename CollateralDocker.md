@@ -35,7 +35,7 @@ For more information about this keystore format and how to generate them:
 
 `ETH_RPC_URL` - The URL of ethereum RPC connection
 
-`KEEPER_ADDRESS` - The keeper's address
+`KEEPER_ADDRESS` - The keeper's address. It must be in checksummed format, not all lower or uppercase.
 
 ### Then
 
