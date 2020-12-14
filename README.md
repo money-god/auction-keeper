@@ -31,14 +31,30 @@ If a new auction is detected, a new bidding model is started.
 
 **NOTE**: _Bidding models_ are only used for surplus and debt auctions, not collateral auctions.
 
-## Running in docker(recommended)
+# Installation
+
+## Running on Docker(recommended)
 Get an auction-keeper up quickly, running in a docker container.
 
-* [Collateral](./Collateral.md)
+* [Collateral](./CollateralDocker.md)
 
-* [Surplus](./Surplus.md)
+* [Surplus](./SurplusDocker.md)
 
-* [Debt](./Debt.md)
+* [Debt](./DebtDocker.md)
+
+## Running on a host
+
+### Pre-requisites
+* Add pre-reqs
+
+### Examples
+
+* [Collateral](./CollateralHost.md)
+
+* [Surplus](./SurplusHost.md)
+
+* [Debt](./DebtHost.md)
+
 
 # Configuration Reference
 
