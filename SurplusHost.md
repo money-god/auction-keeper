@@ -1,8 +1,31 @@
-# Running a Surplus Auction Keeper on a Host(not available on PRAI Demo)
+# Running a Surplus Auction Keeper on a Host
+**_Not currently available on PRAI Demo_**
 
-## 1) Get FLX
+## Prerequisties
+Python 3.6+
 
-## 2) Pick a RAI/FLX price and paste the following code into `debt_model.sh`. 
+#### Get FLX
+
+#### Clone
+```
+git clone https://github.com/reflexer-labs/auction-keeper.git
+cd auction-keeper
+git checkout tags/prai-demo
+git submodule update --init --recursive
+```
+
+#### Install
+This creates a virtual environment and installs requirements.
+
+`./install.sh`
+
+## 1) Start virtualenv
+
+```source _virtualenv/bin/activate```
+
+## 2) Create a model file 
+
+Pix a FLX/RAI price and paste the following code into `surplus_model.sh`.  
 
 ```
 #!/usr/bin/env bash
@@ -11,7 +34,8 @@ while true; do
   sleep 120                   
 done
 ```
-For more information about bidding models, see [here](./BiddingModels.md)
+### Then
+`chmod +x surplus_model.sh`
 
 ## 3) Create the keeper run file.
 
@@ -20,11 +44,11 @@ Create a file called  `run_auction_keeper.sh` and paste the following code in it
 ```text
 #!/bin/bash
 bin/auction-keeper \
-    --type surplus \
-     --model ./debt_model.sh \
+     --type surplus \
+     --model surplus_model.sh \
      --rpc-uri <ETH_RPC_URL> \
      --eth-from <KEEPER_ADDRESS> \
-     --eth-key "key_file=<KEYSTORE_FILE>"       
+     --eth-key key_file=<KEYSTORE_FILE>       
 ```
 
 ### Then, substitute the following variables:
@@ -41,12 +65,10 @@ For more information about this keystore format and how to generate them:
 
 * [keythereum](https://github.com/ethereumjs/keythereum)
 
-
-## 4) Make the keeper script runnable
-
+### Then
 `chmod +x run_auction_keeper.sh`
 
-## 5) Start the keeper and enter your keystore file password
+## 4) Start the keeper and enter your keystore file password
 
 `./run_auction_keeper.sh`
 
