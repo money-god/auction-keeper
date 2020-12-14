@@ -96,8 +96,7 @@ Run `bin/auction-keeper -h` without arguments to see an up-to-date list of argum
    _light_ nodes are not supported.
 
    If you don't wish to run your own Ethereum node, third-party providers are available.  This software has been tested
-   with [ChainSafe](https://chainsafe.io/) and [QuikNode](https://v2.quiknode.io/). Infura is incompatible, however, because
-   it does not support the `eth_sendTransaction` RPC method which is used in pyflex.
+   with [Infura](https://infura.io), [ChainSafe](https://chainsafe.io/) and [QuikNode](https://v2.quiknode.io/).
 
 ## Gas price strategies
 
@@ -151,14 +150,19 @@ The keeper provides facilities for managing `SAFEEngine` balances, which may be 
    Amount of system-coin the keeper will try to keep in the `SAFEEngine` through rebalancing with `join`s and `exit`s.
    By default, there is no target.
 
-  Rebalance Notes:
-    Rebalances do not account for system coins moved from the `SAFEEngine` to an auction contract for an active bid.  
-    System coins are rebalanced per `--safe-engine-system-coin-target` when:
-       - The keeper starts up
-       - `SAFEEngine` balance is insufficient to place a bid
-       - An auction is settled
+#### Rebalancing:
+   
+   System coins are rebalanced per `--safe-engine-system-coin-target` when:
+    
+   * The keeper starts up
+   * `SAFEEngine` balance is insufficient to place a bid
+   * An auction is settled
+    
+   Rebalances do not account for system coins moved from the `SAFEEngine` to an auction contract for an active bid.  
+    
+   To avoid transaction spamming, small "dusty" system coins balances will be ignored (until the keeper exits, if so configured).
 
-     To avoid transaction spamming, small "dusty" system coins balances will be ignored (until the keeper exits, if so configured).
+    
 
 ## Managing resources
 
@@ -187,17 +191,14 @@ To start collateral auctions, the keeper needs a list of SAFEs and the collatera
 
 `--max-auctions NUMBER` a
    Limit the number of bidding models created to handle active auctions.  
-   
-   **NOTE**: If using the Infura free-tier and you wish to stay under the 100k requests/day quota, 
+
 `--block-check-interval <integer>, default:1`
    How often tocheck for new blocks
    
 `--bid-check-interval <integer>, default 4` 
     How often to check model process for new bid
     
-Note: To use Infura free-tier and stay under the 100k requests/day quota, `--block-check-interval` must be greater than `10` and `--bid-check-interval must be greater than 180`.  However, this will make your keeper slower in responding to collateral auctions.
-
- Both switches help reduce the number of _requests_ (not just transactions) made to the node.
+Note: To use Infura free-tier and stay under the 100k requests/day quota, `--block-check-interval` must be greater than `10` and `--bid-check-interval` must be greater than 180.  However, this will make your keeper slower in responding to auctions.
 
 ### Sharding/Settling
 
