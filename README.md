@@ -3,22 +3,44 @@
 [![Build Status](https://travis-ci.org/reflexer-labs/auction-keeper.svg?branch=master)](https://travis-ci.org/reflexer-labs/auction-keeper)
 [![codecov](https://codecov.io/gh/reflexer-labs/auction-keeper/branch/master/graph/badge.svg)](https://codecov.io/gh/reflexer-labs/auction-keeper)
 
-The purpose of `auction-keeper` is to:
- * Start new auctions
- * Detect currently ongoing auctions
- * Bid on auctions
+## Overview
+`auction-keeper` participates in collateral, surplus and debt auctions by directly interacting with auction contracts deployed to the Ethereum blockchain.
 
-`auction-keeper` can participate in collateral, surplus and debt auctions. It can read an auction's status from an Ethereum or a [Graph](https://thegraph.com/) node. Its unique feature is the ability to plug in external _bidding models_ which tell the keeper when and how much to bid.
+## Responsibilities
 
-The keeper can be safely left running in the background. The moment it notices or starts a new auction, it will spawn a new instance of a _bidding model_ and then act according to its instructions. _Bidding models_ will be automatically terminated by the keeper the moment the auction expires.  The keeper can also settle expired auctions (in the case of English auctions).
+The keeper is responsible with:
 
+1) Monitoring all active auctions
+2) Starting new auctions
+2) Discovering new auctions
+3) Ensuring a bidding model is running for each active auction
+4) Passing auction status to each bidding model
+5) Processing each bidding model output and submitting bids
+
+
+
+## Architecture
+
+`auction-keeper` can read an auction's status diretly from the Ethereum blockchain or a [Graph](https://thegraph.com/) node. Its unique feature is the ability to plug in external _bidding models_ which tell the keeper when and how much to bid. Bid prices are received from separate _bidding models_.
+
+_Bidding models_ are simple processes that can be implemented in any programming language. They only need to pass JSON objects to and from `auction-keeper`. The simplest example of a bidding model is a shell script which echoes a fixed price.
+
+
+### Monitoring active auctions and discovering new auctions
+
+For every new block, all auctions from `1` to `auctionsStarted` are checked for active status.
+If a new auction is detected, a new bidding model is started.
 **NOTE**: _Bidding models_ are only used for surplus and debt auctions, not collateral auctions.
 
 ## Running an auction keeper
 Follow these links for details on running each type of keeper.
-[collateral](./Collateral.md)
-[Surplus](./Surplus.md)
-[Debt](./Debt.md)
+
+* [Collateral](./Collateral.md)
+
+* [Surplus](./Surplus.md)
+
+* [Debt](./Debt.md)
+
 
 ## Testing
 
