@@ -31,7 +31,7 @@ docker run -it \
         --model /models/surplus_model.sh \
         --rpc-uri <ETH_RPC_URL> \
         --eth-from <KEEPER_ADDRESS> \
-        --eth-key "key_file=/keystore/<KEYSTORE_FILE>"
+        --eth-key key_file=/keystore/<KEYSTORE_FILE>
         
 ```
 
