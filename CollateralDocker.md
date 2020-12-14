@@ -5,7 +5,7 @@
 Buy RAI from [Uniswap v2](https://info.uniswap.org/pair/0xEBdE9F61e34B7aC5aAE5A4170E964eA85988008C) or 
 [open a SAFE](https://app.gitbook.com/@reflexer-labs/s/geb/pyflex/safe-management/opening-a-safe) and generate it.
 
-## 2) Create the keeper run file.
+## 2) Create the keeper run file
 
 Create a file called  `run_auction_keeper.sh` and paste the following code in it:
 
