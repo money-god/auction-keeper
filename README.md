@@ -59,7 +59,7 @@ subscription, the keeper initializes a cache of safe state by scraping event log
 continuously refresh safe state to detect undercollateralized SAFEs.
    * Despite batching log queries into multiple requests, Geth nodes are generally unable to initialize the safe state
    cache in a reasonable amount of time.  As such, Geth is not recommended for liquidating SAFEs.
-   * To manage resources, it is recommended to run separate keepers using separate accounts to bite (`--start-auctions-only`)
+   * To manage resources, it is recommended to run separate keepers using separate accounts to liquidate (`--start-auctions-only`)
    and bid (`--bid-only`).
 
 For some known Ubuntu and macOS issues see the [pyflex](https://github.com/reflexer-labs/pyflex) README.
