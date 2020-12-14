@@ -48,7 +48,7 @@ bin/auction-keeper \
      --model ./collateral_model.sh \
      --rpc-uri <ETH_RPC_URL> \
      --eth-from <KEEPER_ADDRESS> \
-     --eth-key "key_file=<KEYSTORE_FILE>"       
+     --eth-key key_file=<KEYSTORE_FILE>       
 ```
 
 ### Then, substitute the following variables:
