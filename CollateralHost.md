@@ -25,7 +25,9 @@ git submodule update --init --recursive
 
 ```source _virtualenv/bin/activate```
 
-## 2) Paste the following code into `collateral_model.sh`.  
+## 2) Create a model file 
+
+Paste the following code into `collateral_model.sh`.  
 
 ```
 #!/usr/bin/env bash
@@ -64,12 +66,10 @@ For more information about this keystore format and how to generate them:
 
 * [keythereum](https://github.com/ethereumjs/keythereum)
 
-
-## 4) Make the keeper script runnable
-
+### Then
 `chmod +x run_auction_keeper.sh`
 
-## 5) Start the keeper and enter your keystore file password
+## 4) Start the keeper and enter your keystore file password
 
 `./run_auction_keeper.sh`
 
