@@ -5,6 +5,17 @@
 Buy RAI from [Uniswap v2](https://info.uniswap.org/pair/0xEBdE9F61e34B7aC5aAE5A4170E964eA85988008C) or 
 [open a SAFE](https://app.gitbook.com/@reflexer-labs/s/geb/pyflex/safe-management/opening-a-safe) and generate it.
 
+## 2) Pick a RAI/FLX price and paste the following code into `debt_model.sh`. 
+
+```
+#!/usr/bin/env bash
+while true; do
+  echo "{\"price\": \"325.0\"}"
+  sleep 120                   
+done
+```
+For more information about bidding models, see [here](./BiddingModels.md)
+
 ## 2) Create the keeper run file.
 
 Create a file called  `run_auction_keeper.sh` and paste the following code in it:
@@ -13,18 +24,22 @@ Create a file called  `run_auction_keeper.sh` and paste the following code in it
 #!/bin/bash
 
 docker run -it \
-	-v <KEYSTORE DIR>:/keystore \
+  -v <KEYSTORE_DIR>:/keystore \
+  -v <MODEL_DIR>:/models \
 	reflexer/auction-keeper:prai-demo \
-        --type debt \
+        --type surplus \
+        --model /models/debt_model.sh \
         --rpc-uri <ETH_RPC_URL> \
-        --eth-from <KEEPER ADDRESS> \
-        --eth-key "key_file=/keystore/<KEYSTORE FILE>"
+        --eth-from <KEEPER_ADDRESS> \
+        --eth-key "key_file=/keystore/<KEYSTORE_FILE>"
         
 ```
 
 ### Then, substitute the following variables:
 
 `KEYSTORE_DIR` - The local directory where your keystore file is.
+
+`MODEL_DIR` - The local directory where your `debt_model.sh` file is.
 
 `KEYSTORE_FILE` - Your Ethereum UTC JSON keystore filename
 
