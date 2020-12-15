@@ -207,6 +207,8 @@ class AuctionKeeper:
 
             self.arguments.model = ['../models/collateral_model.sh']
 
+            self.arguments.model = ['../models/collateral_model.sh']
+
             if self.arguments.create_auctions:
                 self.safe_history = SAFEHistory(self.web3, self.geb, self.collateral_type, self.arguments.from_block,
                                                 self.graph_endpoints)
@@ -653,7 +655,6 @@ class AuctionKeeper:
         output = auction.model_output()
         if output is None:
             return
-
         self.rebalance_system_coin()
         
         bid_price, bid_transact, cost = self.strategy.bid(id)
