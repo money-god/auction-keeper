@@ -41,9 +41,7 @@ collateral_type_name = sys.argv[1] if len(sys.argv) > 1 else "ETH-A"
 collateral_type = geb.safe_engine.collateral_type(collateral_type_name)
 rate = collateral_type.accumulated_rate
 
-# on kovan 0.9.0 use 21461453
-from_block = int(sys.argv[2]) if len(sys.argv) > 2 else 11000000
-
+from_block = geb.starting_block_number
 
 def wait(minutes_to_wait: int, sh: SAFEHistory):
     while minutes_to_wait > 0:
