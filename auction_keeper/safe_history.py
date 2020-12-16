@@ -35,12 +35,13 @@ class SAFEHistory:
     cache_lookback = 12  # for handling block reorgs
 
     def __init__(self, web3: Web3, geb: GfDeployment, collateral_type: CollateralType, from_block: Optional[int],
-                 graph_endpoints: Optional[list]):
+                 graph_endpoints: Optional[list], graph_block_threshold=20):
         assert isinstance(web3, Web3)
         assert isinstance(geb, GfDeployment)
         assert isinstance(collateral_type, CollateralType)
         assert isinstance(from_block, int) or from_block is None
         assert isinstance(graph_endpoints, list) or graph_endpoints is None
+        assert isinstance(graph_block_threshold, int)
         assert from_block or graph_endpoints
 
         self.web3 = web3
@@ -48,6 +49,7 @@ class SAFEHistory:
         self.collateral_type = collateral_type
         self.from_block = from_block
         self.graph_endpoints = graph_endpoints
+        self.graph_block_threshold = graph_block_threshold
         #used for endpoint failover
         self.graph_endpoint_idx = 0
         self.cache_block = from_block
@@ -62,10 +64,10 @@ class SAFEHistory:
         safe_addresses = set()
         mods = []
 
-        # Get a unique list of safe addresses
         from_block = max(0, self.cache_block - self.cache_lookback)
         to_block = self.web3.eth.blockNumber
-        if use_graph:
+        # If graph is enabled and last block is old enough, use graph. Otherwise, use node.
+        if use_graph and to_block - from_block > self.graph_block_threshold:
             fetched_graph = False
             # Cycle through list of graph endpoints until fetch succeeds
             while self.graph_endpoint_idx < len(self.graph_endpoints):
@@ -98,8 +100,8 @@ class SAFEHistory:
             safe_addresses.add(mod.safe)
 
         # Update state of already-cached safes
-        #for address, safe in self.cache.items():
-        #    self.cache[address] = self.geb.safe_engine.safe(self.collateral_type, address)
+        for address, safe in self.cache.items():
+            self.cache[address] = self.geb.safe_engine.safe(self.collateral_type, address)
 
         # Cache state of newly discovered safes
         for address in safe_addresses:

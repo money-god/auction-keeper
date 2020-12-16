@@ -64,6 +64,8 @@ class AuctionKeeper:
                             help="Ethereum private key(s) to use (e.g. 'key_file=aaa.json,pass_file=aaa.pass')")
         parser.add_argument('--type', type=str, choices=['collateral', 'surplus', 'debt'], default='collateral',
                             help="Auction type in which to participate")
+        parser.add_argument('--system', type=str, default='rai',
+                            help="Name of the system. Currently only 'rai' is supported")
         parser.add_argument('--collateral-type', type=str, default='ETH-A',
                             help="Name of the collateral type for a collateral keeper (e.g. 'ETH-B', 'ZRX-A'); ")
         parser.add_argument('--bid-only', dest='create_auctions', action='store_false',
@@ -94,9 +96,13 @@ class AuctionKeeper:
                             help="Comma-delimited list of graph endpoints. When specified, safe history will be initialized "
                                  "from a Graph node, reducing load on the Ethereum node for collateral auctions. "
                                  "If multiple nodes are passed, they will be tried in order")
-        parser.add_argument('--from-block', type=int, default=11120952,
+        parser.add_argument('--graph-block-threshold', type=int, default=20,
+                            help="If last block seen is older than this, use the graph for fetching data. Otherwise, use the node. "
+                                 "This allows the keeper to use the graph when fetching historical data, but use a node for "
+                                 " recent blocks, which should be updated faster than the graph")
+        parser.add_argument('--from-block', type=int, default=None,
                             help="Starting block from which to find vaults to liquidation or debt to queue "
-                                 "(set to block where GEB was deployed)")
+                                 "(If not configured, this is set to the block where GEB was deployed)")
         parser.add_argument('--safe-engine-system-coin-target', type=str, default='ALL',
                             help="Amount of system coin to keep in the SAFEEngine contract or 'ALL' to join entire token balance")
         parser.add_argument('--keep-system-coin-in-safe-engine-on-exit', dest='exit_system_coin_on_shutdown', action='store_false',
@@ -154,21 +160,26 @@ class AuctionKeeper:
         self.our_address = Address(self.arguments.eth_from)
 
         # Check configuration for retrieving safes/liquidations
+        '''
         if self.arguments.type == 'collateral' and self.arguments.create_auctions \
                 and self.arguments.from_block is None and self.graph_endpoints is None:
             raise RuntimeError("Either --from-block or --graph-endpoints must be specified to kick off "
                                "collateral auctions")
+        '''
         if self.arguments.type == 'collateral' and not self.arguments.collateral_type:
             raise RuntimeError("--collateral-type must be supplied when configuring a collateral keeper")
+        '''
         if self.arguments.type == 'debt' and self.arguments.create_auctions \
                 and self.arguments.from_block is None:
             raise RuntimeError("--from-block must be specified to start debt auctions")
+        '''
 
         if self.arguments.type != 'collateral' and self.arguments.flash_swap:
             raise RuntimeError("--flash-swap is only supported with --type=collateral")
 
         # Configure core and token contracts
-        self.geb = GfDeployment.from_node(self.web3, 'rai')
+        self.geb = GfDeployment.from_node(self.web3, self.arguments.system)
+        self.from_block = self.arguments.from_block if self.arguments.from_block else self.geb.starting_block_number
         self.safe_engine = self.geb.safe_engine
         self.liquidation_engine = self.geb.liquidation_engine
         self.accounting_engine = self.geb.accounting_engine
@@ -210,8 +221,8 @@ class AuctionKeeper:
             self.arguments.model = ['../models/collateral_model.sh']
 
             if self.arguments.create_auctions:
-                self.safe_history = SAFEHistory(self.web3, self.geb, self.collateral_type, self.arguments.from_block,
-                                                self.graph_endpoints)
+                self.safe_history = SAFEHistory(self.web3, self.geb, self.collateral_type, self.from_block,
+                                                self.graph_endpoints, self.arguments.graph_block_threshold)
         elif self.surplus_auction_house:
             self.strategy = SurplusAuctionStrategy(self.surplus_auction_house, self.prot.address)
         elif self.debt_auction_house:
@@ -405,7 +416,7 @@ class AuctionKeeper:
                 # If flash swap enabled, use flash proxy to liquidate and settle
                 if self.arguments.flash_swap and self.arguments.bid_on_auctions:
                     self.logger.info(f"Using flash swap to liquidate and settle safe {safe}")
-                    self._run_future(self.collateral.keeper_flash_proxy.liquidate_and_settle_safe(safe).transact_async(gas=1800000, gas_price=self.gas_price))
+                    self._run_future(self.collateral.keeper_flash_proxy.liquidate_and_settle_safe(safe).transact_async(gas=800000, gas_price=self.gas_price))
 
                 elif self.arguments.bid_on_auctions and available_system_coin == Wad(0):
                     self.logger.warning(f"Skipping opportunity to liquidation safe {safe.address} "
@@ -494,7 +505,7 @@ class AuctionKeeper:
 
             # Convert enough sin in unqueued_unauctioned_debt to have unqueued_unauctioned_debt >= debt_auction_bid_size + total_surplus
             if unqueued_unauctioned_debt < (debt_auction_bid_size + total_surplus) and self.liquidation_engine is not None:
-                past_blocks = self.web3.eth.blockNumber - self.arguments.from_block
+                past_blocks = self.web3.eth.blockNumber - self.from_block
                 for liquidation_event in self.liquidation_engine.past_liquidations(past_blocks):  # TODO: cache ?
                     block_time = liquidation_event.block_time(self.web3)
                     now = self.web3.eth.getBlock('latest')['timestamp']

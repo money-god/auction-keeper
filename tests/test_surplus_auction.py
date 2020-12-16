@@ -71,7 +71,6 @@ class TestAuctionKeeperSurplus(TransactionIgnoringTest):
         # Since no args were assigned, gas strategy should return a GeometricGasPrice starting at the node gas price
         self.default_gas_price = get_node_gas_price(self.web3)
 
-    #@pytest.mark.skip("tmp")
     def test_should_detect_surplus_auction(self, web3, geb, c, auction_income_recipient_address, keeper_address):
 
         print(self.keeper)
@@ -95,7 +94,6 @@ class TestAuctionKeeperSurplus(TransactionIgnoringTest):
         assert self.surplus_auction_house.increase_bid_size(auction_id, auction.amount_to_sell, Wad.from_number(30)).transact(from_address=self.other_address)
         time_travel_by(web3, geb.surplus_auction_house.bid_duration() + 1)
 
-    #@pytest.mark.skip("tmp")
     def test_should_start_a_new_model_and_provide_it_with_info_on_auction_start(self, auction_id):
         # given
         (model, model_factory) = models(self.keeper, auction_id)
@@ -124,7 +122,6 @@ class TestAuctionKeeperSurplus(TransactionIgnoringTest):
         assert status.bid_expiry == 0
         assert status.price is None
 
-    #@pytest.mark.skip("tmp")
     def test_should_provide_model_with_updated_info_after_our_own_bid(self):
         # given
         auction_id = self.surplus_auction_house.auctions_started()
@@ -167,7 +164,6 @@ class TestAuctionKeeperSurplus(TransactionIgnoringTest):
         time_travel_by(self.web3, self.surplus_auction_house.bid_duration() + 1)
         assert self.surplus_auction_house.settle_auction(auction_id).transact()
 
-    #@pytest.mark.skip("tmp")
     def test_should_provide_model_with_updated_info_after_somebody_else_bids(self, auction_id):
         # given
         (model, model_factory) = models(self.keeper, auction_id)
@@ -209,7 +205,6 @@ class TestAuctionKeeperSurplus(TransactionIgnoringTest):
         time_travel_by(self.web3, self.surplus_auction_house.bid_duration() + 1)
         assert self.surplus_auction_house.settle_auction(auction_id).transact()
 
-    #@pytest.mark.skip("tmp")
     def test_should_restart_auction_if_auction_expired_due_to_total_auction_length(self, auction_id):
         # given
         (model, model_factory) = models(self.keeper, auction_id)
@@ -240,7 +235,6 @@ class TestAuctionKeeperSurplus(TransactionIgnoringTest):
         self.keeper.check_all_auctions()
         model.terminate.assert_called_once()
 
-    #@pytest.mark.skip("tmp")
     def test_should_terminate_model_if_auction_expired_due_to_bid_duration_and_somebody_else_won_it(self, auction_id):
         # given
         (model, model_factory) = models(self.keeper, auction_id)
@@ -264,7 +258,6 @@ class TestAuctionKeeperSurplus(TransactionIgnoringTest):
         model_factory.create_model.assert_called_once()
         model.terminate.assert_called_once()
 
-    #@pytest.mark.skip("tmp")
     def test_should_terminate_model_if_auction_is_settled(self, auction_id):
         # given
         auction_id = self.surplus_auction_house.auctions_started()
@@ -291,7 +284,6 @@ class TestAuctionKeeperSurplus(TransactionIgnoringTest):
         model_factory.create_model.assert_called_once()
         model.terminate.assert_called_once()
 
-    #@pytest.mark.skip("tmp")
     def test_should_not_instantiate_model_if_auction_is_settled(self, auction_id):
         # given
         (model, model_factory) = models(self.keeper, auction_id)
@@ -309,7 +301,6 @@ class TestAuctionKeeperSurplus(TransactionIgnoringTest):
         # then
         model_factory.create_model.assert_not_called()
 
-    #@pytest.mark.skip("tmp")
     def test_should_not_do_anything_if_no_output_from_model(self, auction_id):
         # given
         previous_block_number = self.web3.eth.blockNumber
@@ -322,7 +313,6 @@ class TestAuctionKeeperSurplus(TransactionIgnoringTest):
         # then
         assert self.web3.eth.blockNumber == previous_block_number
 
-    #@pytest.mark.skip("tmp")
     def test_should_make_initial_bid(self):
         # given
         auction_id = self.surplus_auction_house.auctions_started()
@@ -342,7 +332,6 @@ class TestAuctionKeeperSurplus(TransactionIgnoringTest):
         time_travel_by(self.web3, self.surplus_auction_house.bid_duration() + 1)
         assert self.surplus_auction_house.settle_auction(auction_id).transact()
 
-    #@pytest.mark.skip("tmp")
     def test_should_bid_even_if_there_is_already_a_bidder(self, auction_id):
         # given
         (model, model_factory) = models(self.keeper, auction_id)
@@ -365,7 +354,6 @@ class TestAuctionKeeperSurplus(TransactionIgnoringTest):
         time_travel_by(self.web3, self.surplus_auction_house.bid_duration() + 1)
         assert self.surplus_auction_house.settle_auction(auction_id).transact()
 
-    #@pytest.mark.skip("tmp")
     def test_should_overbid_itself_if_model_has_updated_the_price(self, auction_id):
         # given
         (model, model_factory) = models(self.keeper, auction_id)
@@ -394,7 +382,6 @@ class TestAuctionKeeperSurplus(TransactionIgnoringTest):
         time_travel_by(self.web3, self.surplus_auction_house.bid_duration() + 1)
         assert self.surplus_auction_house.settle_auction(auction_id).transact()
 
-    #@pytest.mark.skip("tmp")
     def test_should_increase_gas_price_of_pending_transactions_if_model_increases_gas_price(self, auction_id):
         # given
         (model, model_factory) = models(self.keeper, auction_id)
@@ -422,7 +409,6 @@ class TestAuctionKeeperSurplus(TransactionIgnoringTest):
         time_travel_by(self.web3, self.surplus_auction_house.bid_duration() + 1)
         assert self.surplus_auction_house.settle_auction(auction_id).transact()
 
-    #@pytest.mark.skip("tmp")
     def test_should_replace_pending_transactions_if_model_raises_bid_and_increases_gas_price(self, auction_id):
         # given
         (model, model_factory) = models(self.keeper, auction_id)
@@ -450,7 +436,6 @@ class TestAuctionKeeperSurplus(TransactionIgnoringTest):
         time_travel_by(self.web3, self.surplus_auction_house.bid_duration() + 1)
         assert self.surplus_auction_house.settle_auction(auction_id).transact()
 
-    #@pytest.mark.skip("tmp")
     def test_should_replace_pending_transactions_if_model_lowers_bid_and_increases_gas_price(self, auction_id):
         # given
         (model, model_factory) = models(self.keeper, auction_id)
@@ -478,7 +463,6 @@ class TestAuctionKeeperSurplus(TransactionIgnoringTest):
         time_travel_by(self.web3, self.surplus_auction_house.bid_duration() + 1)
         assert self.surplus_auction_house.settle_auction(auction_id).transact()
 
-    #@pytest.mark.skip("tmp")
     def test_should_not_bid_on_rounding_errors_with_small_amounts(self, auction_id):
         # given
         (model, model_factory) = models(self.keeper, auction_id)
@@ -507,7 +491,6 @@ class TestAuctionKeeperSurplus(TransactionIgnoringTest):
         time_travel_by(self.web3, self.surplus_auction_house.bid_duration() + 1)
         assert self.surplus_auction_house.settle_auction(auction_id).transact()
 
-    #@pytest.mark.skip("tmp")
     def test_should_settle_when_we_won_the_auction(self, auction_id):
         # given
         (model, model_factory) = models(self.keeper, auction_id)
@@ -533,7 +516,6 @@ class TestAuctionKeeperSurplus(TransactionIgnoringTest):
         # then
         assert system_coin_before < system_coin_after
 
-    #@pytest.mark.skip("tmp")
     def test_should_not_settle_when_auction_finished_but_somebody_else_won(self, auction_id):
         # given
         (model, model_factory) = models(self.keeper, auction_id)
@@ -550,7 +532,6 @@ class TestAuctionKeeperSurplus(TransactionIgnoringTest):
         # then
         assert self.surplus_auction_house.bids(auction_id).bid_amount == Wad.from_number(16)
 
-    #@pytest.mark.skip("tmp")
     def test_should_obey_gas_price_provided_by_the_model(self, auction_id):
         # given
         (model, model_factory) = models(self.keeper, auction_id)
@@ -568,7 +549,6 @@ class TestAuctionKeeperSurplus(TransactionIgnoringTest):
         time_travel_by(self.web3, self.surplus_auction_house.bid_duration() + 1)
         assert self.surplus_auction_house.settle_auction(auction_id).transact()
 
-    #@pytest.mark.skip("tmp")
     def test_should_use_default_gas_price_if_not_provided_by_the_model(self, auction_id):
         # given
         (model, model_factory) = models(self.keeper, auction_id)
@@ -592,7 +572,6 @@ class TestAuctionKeeperSurplus(TransactionIgnoringTest):
         time_travel_by(self.web3, self.surplus_auction_house.bid_duration() + 1)
         assert self.surplus_auction_house.settle_auction(auction_id).transact()
 
-    #@pytest.mark.skip("tmp")
     def test_should_change_gas_strategy_when_model_output_changes(self, auction_id):
         # given
         (model, model_factory) = models(self.keeper, auction_id)

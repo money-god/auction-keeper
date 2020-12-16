@@ -9,4 +9,4 @@ docker run -it \
         --safe-engine-system-coin-target ALL \
         --block-check-interval 1 \
         --bid-check-interval 4 \
-        --graph-endpoints https://api.thegraph.com/subgraphs/name/reflexer-labs/prai-mainnet,https://subgraph.reflexer.finance/subgraphs/name/reflexer-labs/rai
+        --graph-endpoints https://subgraph.reflexer.finance/subgraphs/name/reflexer-labs/rai,https://api.thegraph.com/subgraphs/name/reflexer-labs/prai-mainnet

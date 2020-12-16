@@ -52,8 +52,6 @@ class TestSAFEEngineSystemCoin:
         assert self.geb.system_coin_adapter.exit(self.keeper_address, self.get_system_coin_safe_engine_balance())
         assert self.geb.system_coin.transfer(self.our_address, self.get_system_coin_token_balance()).transact()
 
-
-#@pytest.mark.skip("")
 class TestSAFEEngineSystemCoinTarget(TestSAFEEngineSystemCoin):
     def create_keeper(self, system_coin: float):
         assert isinstance(system_coin, float)
@@ -149,7 +147,6 @@ class TestSAFEEngineSystemCoinTarget(TestSAFEEngineSystemCoin):
         assert self.get_system_coin_token_balance() == Wad(0)
         assert self.get_system_coin_safe_engine_balance() == Wad.from_number(237)
 
-#@pytest.mark.skip("")  
 class TestEmptySAFEEngineOnExitTarget(TestSAFEEngineSystemCoin):
     def create_keeper(self, exit_system_coin_on_shutdown: bool, exit_collateral_on_shutdown: bool):
         assert isinstance(exit_system_coin_on_shutdown, bool)
@@ -248,7 +245,6 @@ class TestEmptySAFEEngineOnExitTarget(TestSAFEEngineSystemCoin):
         # clean up
         self.give_away_system_coin()
 
-@pytest.mark.skip("")  
 class TestEmptySAFEEngineOnExitTargetAll(TestSAFEEngineSystemCoin):
     def create_keeper(self, exit_system_coin_on_shutdown: bool, exit_collateral_on_shutdown: bool):
         assert isinstance(exit_system_coin_on_shutdown, bool)
@@ -329,7 +325,7 @@ class TestEmptySAFEEngineOnExitTargetAll(TestSAFEEngineSystemCoin):
 
         # then ensure system_coin was not emptied
         assert self.get_system_coin_token_balance() == Wad(0)
-        assert system_coin_safe_engine_balance_before == self.get_system_coin_safe_engine_balance()
+        assert system_coin_safe_engine_balance_before < self.get_system_coin_safe_engine_balance()
         # and collateral was emptied
         assert collateral_token_balance_before == collateral_token_balance_before + collateral_safe_engine_balance_before
         assert self.get_collateral_safe_engine_balance() == Wad(0)
@@ -345,7 +341,7 @@ class TestEmptySAFEEngineOnExitTargetAll(TestSAFEEngineSystemCoin):
 
         # clean up
         self.give_away_system_coin()
-#@pytest.mark.skip("")  
+
 class TestRebalance(TestSAFEEngineSystemCoin):
     def create_keeper(self, mocker, system_coin_target="all"):
         # Create a keeper
@@ -484,7 +480,6 @@ class TestRebalance(TestSAFEEngineSystemCoin):
 
         self.give_away_system_coin()
 
-#@pytest.mark.skip("")  
 class TestSwapCollateral(TestSAFEEngineSystemCoin):
     def create_keeper(self, mocker, system_coin_target="all"):
         # Create a keeper
@@ -567,7 +562,6 @@ class TestSwapCollateral(TestSAFEEngineSystemCoin):
 
         self.give_away_system_coin()
 
-@pytest.mark.skip("")  
 class TestSwapCollateralSlippage(TestSAFEEngineSystemCoin):
     def create_keeper(self, mocker, system_coin_target="all"):
         # Create a keeper

@@ -15,7 +15,6 @@ done
 # Pull the docker image
 docker pull reflexer/${TESTCHAIN}
 
-
 pushd ./lib/pyflex
 
 # Stop any existing containers
