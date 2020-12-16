@@ -248,8 +248,7 @@ class TestConfig:
                                                    f"--type collateral --from-block 1 "
                                                    f"--collateral-type ETH-B "
                                                    f"--model ./bogus-model.sh"), web3=web3)
-        assert 1 == len(default_behavior.settle_auctions_for)
-        assert keeper_address == list(default_behavior.settle_auctions_for)[0]
+        assert 0 == len(default_behavior.settle_auctions_for)
         assert not default_behavior.settle_all
 
         settle_for_3_accounts = AuctionKeeper(args=args(f"--eth-from {keeper_address} "

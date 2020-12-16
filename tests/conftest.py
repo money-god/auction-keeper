@@ -101,7 +101,7 @@ def mint_prot(prot: DSToken, recipient_address: Address, amount: Wad):
 
 @pytest.fixture(scope="session")
 def geb(web3):
-    return GfDeployment.from_node(web3=web3)
+    return GfDeployment.from_node(web3, 'rai')
 
 
 @pytest.fixture(scope="session")

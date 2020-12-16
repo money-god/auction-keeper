@@ -43,7 +43,7 @@ logging.getLogger("requests").setLevel(logging.INFO)
 # Usage:
 # python3 tests/manual_test_create_unsafe_vault [ADDRESS] [KEY] [COLLATERAL_TYPE]
 
-geb = GfDeployment.from_node(web3)
+geb = GfDeployment.from_node(web3, 'rai')
 our_address = Address(web3.eth.defaultAccount)
 collateral = geb.collaterals[str(sys.argv[3])] if len(sys.argv) > 3 else geb.collaterals['ETH-A']
 collateral_type = geb.safe_engine.collateral_type(collateral.collateral_type.name)

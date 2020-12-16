@@ -36,7 +36,7 @@ logging.getLogger("requests").setLevel(logging.INFO)
 web3 = Web3(HTTPProvider(endpoint_uri=os.environ["ETH_RPC_URL"], request_kwargs={"timeout": 240}))
 GRAPH_ENDPOINTS = ['https://api.thegraph.com/subgraphs/name/reflexer-labs/rai-kovan',
                    'https://subgraph-kovan.reflexer.finance/subgraphs/name/reflexer-labs/rai']
-geb = GfDeployment.from_node(web3)
+geb = GfDeployment.from_node(web3, 'rai')
 collateral_type_name = sys.argv[1] if len(sys.argv) > 1 else "ETH-A"
 collateral_type = geb.safe_engine.collateral_type(collateral_type_name)
 rate = collateral_type.accumulated_rate

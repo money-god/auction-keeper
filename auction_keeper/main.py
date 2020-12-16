@@ -168,7 +168,7 @@ class AuctionKeeper:
             raise RuntimeError("--flash-swap is only supported with --type=collateral")
 
         # Configure core and token contracts
-        self.geb = GfDeployment.from_node(web3=self.web3)
+        self.geb = GfDeployment.from_node(self.web3, 'rai')
         self.safe_engine = self.geb.safe_engine
         self.liquidation_engine = self.geb.liquidation_engine
         self.accounting_engine = self.geb.accounting_engine
@@ -183,7 +183,7 @@ class AuctionKeeper:
             self.collateral_type = None
             self.collateral_join = None
 
-        if self.arguments.swap_collateral:
+        if self.arguments.swap_collateral or self.arguments.flash_swap:
 
             self.token_syscoin = Token("Syscoin", Address(self.geb.system_coin.address), 18)
             self.token_weth = Token("WETH", self.collateral.collateral.address, 18)
@@ -337,7 +337,7 @@ class AuctionKeeper:
             logging.info("Keeper will perform the following operation(s) in parallel:")
             [logging.info(line) for line in notice_string]
 
-            if self.collateral_auction_house and self.collateral_type and self.collateral_type.name == "ETH-A":
+            if self.collateral_auction_house and self.collateral_type:# and self.collateral_type.name == "ETH-A":
                 logging.info("*** When Keeper is settling/bidding, the initial evaluation of auctions will likely take > 45 minutes without setting a lower boundary via '--min-auction' ***")
                 logging.info("*** When Keeper is starting auctions, initializing safe history may take > 30 minutes without using Graph via `--graph-endpoints` ***")
         else:
@@ -405,7 +405,7 @@ class AuctionKeeper:
                 # If flash swap enabled, use flash proxy to liquidate and settle
                 if self.arguments.flash_swap and self.arguments.bid_on_auctions:
                     self.logger.info(f"Using flash swap to liquidate and settle safe {safe}")
-                    self._run_future(self.geb.flash_proxy.liquidate_and_settle_safe(safe).transact_async(gas=800000, gas_price=self.gas_price))
+                    self._run_future(self.collateral.keeper_flash_proxy.liquidate_and_settle_safe(safe).transact_async(gas=1800000, gas_price=self.gas_price))
 
                 elif self.arguments.bid_on_auctions and available_system_coin == Wad(0):
                     self.logger.warning(f"Skipping opportunity to liquidation safe {safe.address} "
@@ -541,9 +541,10 @@ class AuctionKeeper:
                     continue
              
                 # use flash proxy to settle auction
-                if self.arguments.type == 'collateral' and self.flash_swap:
+                if self.arguments.type == 'collateral' and self.arguments.flash_swap:
                     self.logger.info(f"Using flash swap to settle auction {id}")
-                    self.geb.flash_proxy.settle_auction(id).transact(gas=400000)
+                    self.collateral.keeper_flash_proxy.settle_auction(id).transact(gas=800000)
+                    continue
                 # Prevent growing the auctions collection beyond the configured size
                 if len(self.auctions.auctions) < self.arguments.max_auctions:
                     self.feed_model(id)
@@ -575,7 +576,11 @@ class AuctionKeeper:
 
                 if not self.auction_handled_by_this_shard(id):
                     continue
-                self.handle_fixed_discount_bid(id=id, auction=auction, reservoir=reservoir)
+
+                if isinstance(self.collateral_auction_house, FixedDiscountCollateralAuctionHouse):
+                    self.handle_fixed_discount_bid(id=id, auction=auction, reservoir=reservoir)
+                else:
+                    self.handle_bid(id=id, auction=auction, reservoir=reservoir)
 
     # TODO if we will introduce multithreading here, proper locking should be introduced as well
     #     locking should not happen on `auction.lock`, but on auction.id here. as sometimes we will
