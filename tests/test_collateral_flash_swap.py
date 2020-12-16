@@ -37,7 +37,7 @@ from tests.helper import args, time_travel_by, wait_for_other_threads, Transacti
 
 from pyexchange.uniswapv2 import UniswapV2
 
-bid_size = Wad.from_number(10)
+bid_size = Wad.from_number(3)
 bid_size_small = Wad(2000)
 
 
@@ -139,14 +139,14 @@ class TestAuctionKeeperCollateralFlashSwap(TransactionIgnoringTest):
     def test_collateral_auction_house_address(self):
         assert self.keeper.collateral_auction_house.address == self.collateral.collateral_auction_house.address
 
-    @pytest.mark.skip("tmp")
+    #@pytest.mark.skip("tmp")
     def test_flash_proxy_settle_auction(self, c: Collateral, web3, geb, auction_id, other_address):
         # given
         collateral_auction_house = self.collateral.collateral_auction_house
         if not isinstance(collateral_auction_house, FixedDiscountCollateralAuctionHouse):
             return
 
-        set_collateral_price(geb, c, Wad.from_number(250))
+        set_collateral_price(geb, c, Wad.from_number(100))
         eth_before = self.web3.eth.getBalance(self.keeper_address.address)
 
         print(f"redemption price {geb.oracle_relayer.redemption_price()}")
@@ -174,7 +174,7 @@ class TestAuctionKeeperCollateralFlashSwap(TransactionIgnoringTest):
         if not isinstance(collateral_auction_house, FixedDiscountCollateralAuctionHouse):
             return
 
-        set_collateral_price(geb, c, Wad.from_number(250))
+        set_collateral_price(geb, c, Wad.from_number(100))
         auctions_started = collateral_auction_house.auctions_started()
         critical_safe = create_critical_safe(geb, c, bid_size, other_address)
         eth_before = self.web3.eth.getBalance(self.keeper_address.address)
