@@ -34,22 +34,20 @@ logging.getLogger("asyncio").setLevel(logging.INFO)
 logging.getLogger("requests").setLevel(logging.INFO)
 
 web3 = Web3(HTTPProvider(endpoint_uri=os.environ["ETH_RPC_URL"], request_kwargs={"timeout": 240}))
-GRAPH_ENDPOINTS = ['https://api.thegraph.com/subgraphs/name/reflexer-labs/rai-kovan',
-                   'https://subgraph-kovan.reflexer.finance/subgraphs/name/reflexer-labs/rai']
-geb = GfDeployment.from_node(web3)
+GRAPH_ENDPOINTS = ['https://subgraph-kovan.reflexer.finance/subgraphs/name/reflexer-labs/rai', 
+                   'https://api.thegraph.com/subgraphs/name/reflexer-labs/rai-kovan']
+geb = GfDeployment.from_node(web3, 'rai')
 collateral_type_name = sys.argv[1] if len(sys.argv) > 1 else "ETH-A"
 collateral_type = geb.safe_engine.collateral_type(collateral_type_name)
 rate = collateral_type.accumulated_rate
 
-# on kovan 0.9.0 use 21461453
-from_block = int(sys.argv[2]) if len(sys.argv) > 2 else 11000000
-
+from_block = geb.starting_block_number
 
 def wait(minutes_to_wait: int, sh: SAFEHistory):
     while minutes_to_wait > 0:
+        state_update_started = datetime.now()
         time.sleep(2)
         print(f"Testing cache for another {minutes_to_wait:.2f} minutes")
-        state_update_started = datetime.now()
         sh.get_safes()
         minutes_elapsed = (datetime.now() - state_update_started).seconds / 60
         minutes_to_wait -= minutes_elapsed
@@ -79,6 +77,13 @@ safes_graph = sh.get_safes()
 elapsed: timedelta = datetime.now() - started
 print(f"Found {len(safes_graph)} safes from the Graph in {elapsed.seconds} seconds")
 
+"""
+for safe in safes_graph.values():
+    is_critical = safe.locked_collateral * collateral_type.liquidation_price < safe.generated_debt * rate
+    if is_critical:
+        print(f"critical: {safe}")
+"""
+
 wait(1, sh)
 
 # Reconcile the data
@@ -107,7 +112,7 @@ for key, value in safes_graph.items():
         missing += 1
     total_generated_debt_graph += float(value.generated_debt)
 
-with open(f"safe-reconciliation-{collateral_type}.csv", "w") as file:
+with open(f"safe-reconciliation-{collateral_type.name}.csv", "w") as file:
     file.write(csv)
 
 total = max(len(safes_graph), len(safes_logs))

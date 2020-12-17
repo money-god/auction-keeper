@@ -73,8 +73,8 @@ class TestAuctionKeeperFixedDiscountCollateralAuctionHouse(TransactionIgnoringTe
                                      f"--type collateral "
                                      f"--from-block 200 "
                                      f"--min-auction {self.min_auction} "
-                                     f"--collateral-type {self.collateral.collateral_type.name} "
-                                     f"--model ../models/collateral_model.sh"), web3=self.geb.web3)
+                                     f"--model ../models/collateral_model.sh "
+                                     f"--collateral-type {self.collateral.collateral_type.name}"), web3=self.geb.web3)
         self.keeper.approve()
 
         assert isinstance(self.keeper.gas_price, DynamicGasPrice)

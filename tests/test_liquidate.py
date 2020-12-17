@@ -48,19 +48,16 @@ class TestAuctionKeeperLiquidate(TransactionIgnoringTest):
 
         # when
         keeper.check_safes()
-        print("Done checking safes")
         wait_for_other_threads()
-        print("after wait for other threads")
 
         # then
-        #print(geb.liquidation_engine.past_liquidations(10))
         assert len(geb.liquidation_engine.past_liquidations(10)) > 0
         safe = geb.safe_engine.safe(unsafe_safe.collateral_type, unsafe_safe.address)
         assert safe.generated_debt == Wad(0)  # unsafe safe has been liquidated
         assert safe.locked_collateral == Wad(0)  # unsafe safe is now safe ...
         assert c.collateral_auction_house.auctions_started() == 1  # One auction started
 
-    @pytest.mark.skip("failing")
+    @pytest.mark.skip("needs work")
     def test_should_not_liquidate_dusty_safes(self, geb, auction_income_recipient_address):
         # given a lot smaller than the dust limit
         c = geb.collaterals['ETH-A']

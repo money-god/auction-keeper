@@ -2,17 +2,19 @@
 description: Running a surplus auction-keeper on a host
 ---
 
-# Running on a host
+# Running on a Host
 
 _**Not currently available on PRAI Demo**_
+
+{% hint style="info" %}
+In order to participate in surplus auctions you need to bid with protocol tokens
+{% endhint %}
 
 ## Prerequisties
 
 Python 3.6+
 
-#### Get FLX
-
-#### Clone
+### Clone_**:**_
 
 ```text
 git clone https://github.com/reflexer-labs/auction-keeper.git
@@ -21,9 +23,9 @@ git checkout tags/prai-demo
 git submodule update --init --recursive
 ```
 
-#### Install
+### Install:
 
-This creates a virtual environment and installs requirements.
+This creates a virtual environment and installs requirements:
 
 `./install.sh`
 
@@ -33,7 +35,7 @@ This creates a virtual environment and installs requirements.
 
 ## 2\) Create a model file
 
-Pix a FLX/RAI price and paste the following code into `surplus_model.sh`.
+Pick a protocol token/system coin price and paste the following code into `surplus_model.sh`:
 
 ```text
 #!/usr/bin/env bash
@@ -43,11 +45,11 @@ while true; do
 done
 ```
 
-### Then
+### Then:
 
 `chmod +x surplus_model.sh`
 
-## 3\) Create the keeper run file.
+## 3\) Create the keeper run file
 
 Create a file called `run_auction_keeper.sh` and paste the following code in it:
 
@@ -63,18 +65,18 @@ bin/auction-keeper \
 
 ### Then, substitute the following variables:
 
-`ETH_RPC_URL` - The URL of ethereum RPC connection
+`ETH_RPC_URL` - the URL of your ethereum RPC connection
 
-`KEEPER_ADDRESS` - The keeper's address. It should be in checksummed format\(not lowercase\).
+`KEEPER_ADDRESS` - the keeper's address. It should be in checksummed format \(not lowercase\).
 
-`KEYSTORE_FILE` - Your Ethereum UTC JSON keystore filename
+`KEYSTORE_FILE` - your Ethereum UTC JSON keystore filename
 
-For more information about this keystore format and how to generate them:
+For more information about this keystore format and how to generate them, check:
 
 * [Ethereum UTC / JSON Wallet Encryption](https://wizardforcel.gitbooks.io/practical-cryptography-for-developers-book/content/symmetric-key-ciphers/ethereum-wallet-encryption.html)
 * [keythereum](https://github.com/ethereumjs/keythereum)
 
-### Then
+### Finally:
 
 `chmod +x run_auction_keeper.sh`
 
