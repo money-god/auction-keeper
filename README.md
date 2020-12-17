@@ -103,9 +103,9 @@ By default the keeper `join`s system coins to `SAFEEngine` on startup and `exit`
 
 `--keep-collateral-in-safe-engine-on-exit` Do not `exit` collateral on shutdown
 
-`--return-collateral-interval SECS` Delay from the moment the keeper wins a collateral auction and until it `exit`s won collateral out of the `SAFEEngine`. Pass `0` to disable completely. Defaults to `300`
+`--return-collateral-interval SECS` How often, in seconds, the keeper `exit`s won collateral from `SAFEEngine`. Pass `0` to disable completely. Defaults to `300`
 
-`--safe-engine-system-coin-target ALL|<integer>` Amount of system coins the keeper will try to keep in `SAFEEngine` by rebalancing with `join`s and `exit`s between its own wallet and its balance inside GEB. By default there is no target.
+`--safe-engine-system-coin-target ALL|<integer>` Amount of system coins the keeper will try to keep in `SAFEEngine` by rebalancing with `join`s and `exit`s between its own wallet and its balance inside GEB. Defaults to `ALL` and the keeper will `join` all of an account's systems coins.
 
 ### **Rebalancing**
 
@@ -129,7 +129,7 @@ To start collateral auctions, the keeper needs a list of SAFEs and the collatera
 
 `--subgraph-endpoints NODE1,NODE2` Comma delimited list of [Graph](https://thegraph.com) endpoints used to retrieve `ModifySAFECollateralization` events. If multiple endpoints are passed, they will be pinged sequentially in the order they were specified in case one or many of them fail. **NOTE**: This flag is only supported for collateral auctions.
 
-The following are the most recent Graph node endpoints for RAI:`--graph-endpoints https://api.thegraph.com/subgraphs/name/reflexer-labs/prai-mainnet,https://subgraph.reflexer.finance/subgraphs/name/reflexer-labs/prai`
+The following are the most recent Graph node endpoints for RAI:`--graph-endpoints https://subgraph.reflexer.finance/subgraphs/name/reflexer-labs/prai,https://api.thegraph.com/subgraphs/name/reflexer-labs/prai-mainnet`
 
 #### Auctions
 
@@ -158,7 +158,7 @@ For example, to configure three keepers, set `--shards 3` and assign `--shard-id
 
 If you are sharding across multiple accounts, you may want to have a separate keeper that handles all your `settleAuction`s \(in the case of English collateral, debt and surplus auctions\)
 
-`--settle-for <ACCOUNT1 ACCOUNT2>|NONE|ALL` Space-delimited list of accounts for which the keeper will settle auctions. Specify `NONE` to disable this option. If you'd like to donate your gas to settle auctions for all participants, `ALL` is also supported.  
+`--settle-for <ACCOUNT1 ACCOUNT2>|NONE|ALL` Space-delimited list of accounts for which the keeper will settle auctions. Specify `NONE` to disable this option. If you'd like to donate your gas to settle auctions for all participants, `ALL` is also supported.  Defaults to only the keeper address.
 
 
 **NOTE**: **Auction settlements are already sharded**, so you should remove the sharding configuration if you're running a dedicated auction settlement keeper.
