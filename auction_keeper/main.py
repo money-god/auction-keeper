@@ -159,20 +159,8 @@ class AuctionKeeper:
         register_keys(self.web3, self.arguments.eth_key)
         self.our_address = Address(self.arguments.eth_from)
 
-        # Check configuration for retrieving safes/liquidations
-        '''
-        if self.arguments.type == 'collateral' and self.arguments.create_auctions \
-                and self.arguments.from_block is None and self.graph_endpoints is None:
-            raise RuntimeError("Either --from-block or --graph-endpoints must be specified to kick off "
-                               "collateral auctions")
-        '''
         if self.arguments.type == 'collateral' and not self.arguments.collateral_type:
             raise RuntimeError("--collateral-type must be supplied when configuring a collateral keeper")
-        '''
-        if self.arguments.type == 'debt' and self.arguments.create_auctions \
-                and self.arguments.from_block is None:
-            raise RuntimeError("--from-block must be specified to start debt auctions")
-        '''
 
         if self.arguments.type != 'collateral' and self.arguments.flash_swap:
             raise RuntimeError("--flash-swap is only supported with --type=collateral")
@@ -214,10 +202,6 @@ class AuctionKeeper:
             self.strategy = FixedDiscountCollateralAuctionStrategy(self.collateral_auction_house,
                                                                    self.min_collateral_lot,
                                                                    self.geb, self.our_address)
-            self.arguments.model = ['../models/collateral_model.sh']
-
-            self.arguments.model = ['../models/collateral_model.sh']
-
             self.arguments.model = ['../models/collateral_model.sh']
 
             if self.arguments.create_auctions:
