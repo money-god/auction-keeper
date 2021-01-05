@@ -82,6 +82,9 @@ class TestAuctionKeeperCollateralFlashSwap(TransactionIgnoringTest):
                                      f"--collateral-type {self.collateral.collateral_type.name}"), web3=self.geb.web3)
         self.keeper.approve()
 
+        #flash-swap should disable rebalance
+        assert self.keeper.rebalance_system_coin() == Wad(0)
+
         assert isinstance(self.keeper.gas_price, DynamicGasPrice)
         self.default_gas_price = self.keeper.gas_price.get_gas_price(0)
 
