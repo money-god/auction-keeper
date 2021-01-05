@@ -162,8 +162,12 @@ class AuctionKeeper:
         if self.arguments.type == 'collateral' and not self.arguments.collateral_type:
             raise RuntimeError("--collateral-type must be supplied when configuring a collateral keeper")
 
-        if self.arguments.type != 'collateral' and self.arguments.flash_swap:
-            raise RuntimeError("--flash-swap is only supported with --type=collateral")
+        if self.arguments.flash_swap:
+            if self.arguments.type != 'collateral':
+                raise RuntimeError("--flash-swap is only supported with --type=collateral")
+
+            # disable rebalancing when using flash swaps
+            self.arguments.safe_engine_system_coin_target = 0
 
         # Configure core and token contracts
         self.geb = GfDeployment.from_node(self.web3, self.arguments.system)
@@ -811,8 +815,8 @@ class AuctionKeeper:
     def rebalance_system_coin(self) -> Optional[Wad]:
         # Returns amount joined (positive) or exited (negative) as a result of rebalancing towards safe_engine_system_coin_target
 
-        if self.arguments.safe_engine_system_coin_target is None:
-            return None
+        if self.arguments.safe_engine_system_coin_target == 0:
+            return Wad(0)
 
         logging.info(f"Checking if internal system coin balance needs to be rebalanced")
         system_coin = self.system_coin_join.system_coin()
