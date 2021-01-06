@@ -404,7 +404,7 @@ class AuctionKeeper:
                 # If flash swap enabled, use flash proxy to liquidate and settle
                 if self.arguments.flash_swap and self.arguments.bid_on_auctions:
                     self.logger.info(f"Using flash swap to liquidate and settle safe {safe}")
-                    self._run_future(self.collateral.keeper_flash_proxy.liquidate_and_settle_safe(safe).transact_async(gas=800000, gas_price=self.gas_price))
+                    self._run_future(self.collateral.keeper_flash_proxy.liquidate_and_settle_safe(safe).transact_async(gas=1000000, gas_price=self.gas_price))
 
                 elif self.arguments.bid_on_auctions and available_system_coin == Wad(0):
                     self.logger.warning(f"Skipping opportunity to liquidation safe {safe.address} "
@@ -542,7 +542,7 @@ class AuctionKeeper:
                 # use flash proxy to settle auction
                 if self.arguments.type == 'collateral' and self.arguments.flash_swap:
                     self.logger.info(f"Using flash swap to settle auction {id}")
-                    self.collateral.keeper_flash_proxy.settle_auction(id).transact(gas=800000)
+                    self.collateral.keeper_flash_proxy.settle_auction(id).transact(gas=1000000)
                     continue
                 # Prevent growing the auctions collection beyond the configured size
                 if len(self.auctions.auctions) < self.arguments.max_auctions:
