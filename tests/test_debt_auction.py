@@ -45,7 +45,7 @@ def auction_id(web3: Web3, geb: GfDeployment, auction_income_recipient_address, 
     if unqueued_unauctioned_debt < total_surplus or (unqueued_unauctioned_debt == Rad(0) and total_surplus == Rad(0)):
         # Liquidate SAFE
         c = geb.collaterals['ETH-B']
-        critical_safe= create_critical_safe(geb, c, Wad.from_number(2), other_address, draw_system_coin=False)
+        critical_safe = create_critical_safe(geb, c, Wad.from_number(2), other_address, draw_system_coin=False)
         collateral_auction_id = liquidate(geb, c, critical_safe)
 
         # Generate some system coin, bid on and win the collateral auction without covering all the debt
