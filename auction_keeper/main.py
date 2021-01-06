@@ -403,6 +403,13 @@ class AuctionKeeper:
             if is_critical:
                 # If flash swap enabled, use flash proxy to liquidate and settle
                 if self.arguments.flash_swap and self.arguments.bid_on_auctions:
+                    saviour = self.liquidation_engine.safe_saviours(collateral_type, safe.address)
+
+                    if saviour != Address('0x0000000000000000000000000000000000000000'):
+                        self.logger.warning(f"Can't use flash swap to liquidate and settle safe {safe.address} "
+                                            "because it has a saviour {saviour}")
+                        continue
+
                     self.logger.info(f"Using flash swap to liquidate and settle safe {safe}")
                     self._run_future(self.collateral.keeper_flash_proxy.liquidate_and_settle_safe(safe).transact_async(gas=1000000, gas_price=self.gas_price))
 
