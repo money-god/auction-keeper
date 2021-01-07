@@ -486,19 +486,19 @@ class AuctionKeeper:
 
         # Check if Accounting Engine has enough bad debt to start an auction and that we have enough system_coin balance
         if unqueued_unauctioned_debt + debt_queue >= debt_auction_bid_size:
-            # We need to bring Joy to 0 and Woe to at least debt_auction_bid_size
+            # We need to bring accounting engine system coin balance to 0 and unqueued_unauctioned_debt to at least debt_auction_bid_size
 
             available_system_coin = self.geb.system_coin.balance_of(self.our_address) + Wad(self.safe_engine.coin_balance(self.our_address))
             if self.arguments.bid_on_auctions and available_system_coin == Wad(0):
-                self.logger.warning("Skipping opportunity to kiss/flog/heal/debt because there is no system coin to bid")
+                self.logger.warning("Skipping opportunity to pop_debt_from_queue and settle debt because there is no system coin to bid")
                 return
 
-            # first use kiss() as it settled bad debt already in auctions and doesn't decrease unqueued_unauctioned_debt
+            # first use cancel_auctioned_debt_with_surplus() as it settles bad debt already in auctions and doesn't decrease unqueued_unauctioned_debt
             total_on_auction_debt = self.accounting_engine.total_on_auction_debt()
             if total_surplus > Rad(0):
                 self.reconcile_debt(total_surplus, total_on_auction_debt, unqueued_unauctioned_debt)
 
-            # Convert enough sin in unqueued_unauctioned_debt to have unqueued_unauctioned_debt >= debt_auction_bid_size + total_surplus
+            # Convert enough debt in unqueued_unauctioned_debt to have unqueued_unauctioned_debt >= debt_auction_bid_size + total_surplus
             if unqueued_unauctioned_debt < (debt_auction_bid_size + total_surplus) and self.liquidation_engine is not None:
                 past_blocks = self.web3.eth.blockNumber - self.from_block
                 for liquidation_event in self.liquidation_engine.past_liquidations(past_blocks):  # TODO: cache ?
