@@ -29,9 +29,9 @@ For every new block, all auctions from `1` to `auctionsStarted` are checked for 
 
 Examples:
 
-* [Collateral](collateral-auction-keeper/running-in-docker.md)
-* [Surplus](debt-auction-keeper/running-in-docker.md)
-* [Debt](surplus-auction-keeper/running-in-docker.md)
+* [Collateral](CollateralDocker.md)
+* [Surplus](DebtDocker.md)
+* [Debt](SurplusDocker.md)
 
 ### Running on a host
 
@@ -51,9 +51,9 @@ The keeper can now be run with `bin/auction-keeper`.
 
 Auction specific examples:
 
-* [Collateral](collateral-auction-keeper/running-on-a-host.md)
-* [Surplus](debt-auction-keeper/running-on-a-host.md)
-* [Debt](surplus-auction-keeper/running-on-a-host.md)
+* [Collateral](CollateralHost.md)
+* [Surplus](DebtHost.md)
+* [Debt](SurplusHost.md)
 
 ## Configuration Reference
 
