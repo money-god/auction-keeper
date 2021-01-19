@@ -91,7 +91,7 @@ If none of these options is given or if the gas API produces no result, the keep
 
 `--gas-initial-multiplier MULTIPLIER` When using an API source for fetching the initial gas price, this tunes the price. It's ignored when you're using `--fixed-gas-price`. In case no strategy is specified it defaults to `1.0`
 
-`--gas-reactive-multiplier MULTIPLIER` Every 30 seconds, a transaction's gas price will be multiplied by this value until it is mined or `--gas-maxiumum` is reached. Not used if `gasPrice` is passed from your bidding model. **NOTE**: [Parity](https://wiki.parity.io/Transactions-Queue#dropping-conditions), as of this writing, requires a minimum gas increase of `1.125` to propagate a transaction replacement; this should be treated as a minimum value unless you want replacements to happen less frequently than 30 seconds \(2+ blocks\). This multiplier defaults to  `1.125` if no other value is given.
+`--gas-reactive-multiplier MULTIPLIER` Every 30 seconds, a transaction's gas price will be multiplied by this value until it is mined or `--gas-maxiumum` is reached. Not used if `gasPrice` is passed from your bidding model. **NOTE**: [Parity](https://wiki.parity.io/Transactions-Queue#dropping-conditions), as of this writing, requires a minimum gas increase of `1.125` to propagate a transaction replacement; this should be treated as a minimum value unless you want replacements to happen less frequently. This multiplier defaults to  `1.125` if no other value is given.
 
 `--gas-maximum GWEI` Maximum value for gas price
 

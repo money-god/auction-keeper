@@ -39,6 +39,7 @@ class UpdatableGasPrice(GasPrice):
 
 
 class DynamicGasPrice(NodeAwareGasPrice):
+    every_secs = 42
     def __init__(self, arguments, web3: Web3):
         assert isinstance(web3, Web3)
         self.gas_station = None
@@ -68,6 +69,10 @@ class DynamicGasPrice(NodeAwareGasPrice):
         if self.fixed_gas:
             assert self.fixed_gas <= self.gas_maximum
 
+    def __del__(self):
+        if self.gas_station:
+            self.gas_station.running = False
+
     def get_gas_price(self, time_elapsed: int) -> Optional[int]:
         # start with fast price from the configured gas API
         fast_price = self.gas_station.fast_price() if self.gas_station else None
@@ -80,10 +85,10 @@ class DynamicGasPrice(NodeAwareGasPrice):
                 initial_price = self.get_node_gas_price()
         # otherwise, use the API's fast price, adjusted by a coefficient, as our starting point
         else:
-            initial_price = int(round(fast_price * self.initial_multiplier))
+            initial_price = int(round(self.get_node_gas_price() * self.initial_multiplier))
 
         return GeometricGasPrice(initial_price=initial_price,
-                                 every_secs=42,
+                                 every_secs=DynamicGasPrice.every_secs,
                                  coefficient=self.reactive_multiplier,
                                  max_price=self.gas_maximum).get_gas_price(time_elapsed)
 
@@ -94,10 +99,10 @@ class DynamicGasPrice(NodeAwareGasPrice):
             retval = f"Fixed gas price {round(self.fixed_gas / self.GWEI, 1)} Gwei "
         else:
             retval = f"Node gas price (currently {round(self.get_node_gas_price() / self.GWEI, 1)} Gwei, "\
-                     "changes over time) "
+                    f"changes over time) with initial multiplier {self.initial_multiplier} "
 
-        retval += f"and will multiply by {self.reactive_multiplier} every 30s to a maximum of " \
-                  f"{round(self.gas_maximum / self.GWEI, 1)} Gwei"
+        retval += f"and will multiply by {self.reactive_multiplier} every {DynamicGasPrice.every_secs}s " \
+                  f"to a maximum of {round(self.gas_maximum / self.GWEI, 1)} Gwei"
         return retval
 
     def __repr__(self):

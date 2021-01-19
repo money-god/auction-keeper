@@ -437,7 +437,7 @@ class AuctionKeeper:
                                      f"min_lot={self.min_collateral_lot}")
                     continue
                 else:
-                    self._run_future(self.liquidation_engine.liquidate_safe(collateral_type, safe).transact_async(gas_price=self.gas_price))
+                    self.liquidation_engine.liquidate_safe(collateral_type, safe).transact(gas_price=self.gas_price)
 
         self.logger.info(f"Checked {len(safes)} safes in {(datetime.now()-started).seconds} seconds")
         # LiquidationEngine.liquidate implicitly starts the collateral auction; no further action needed.
