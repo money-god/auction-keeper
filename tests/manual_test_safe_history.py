@@ -43,15 +43,6 @@ rate = collateral_type.accumulated_rate
 
 from_block = geb.starting_block_number
 
-def wait(minutes_to_wait: int, sh: SAFEHistory):
-    while minutes_to_wait > 0:
-        state_update_started = datetime.now()
-        time.sleep(2)
-        print(f"Testing cache for another {minutes_to_wait:.2f} minutes")
-        sh.get_safes()
-        minutes_elapsed = (datetime.now() - state_update_started).seconds / 60
-        minutes_to_wait -= minutes_elapsed
-
 # Retrieve data from chain
 started = datetime.now()
 print(f"Connecting to node...")
@@ -66,8 +57,6 @@ for safe in safes_graph.values():
     if is_critical:
         print(f"critical: {safe}")
 """
-
-wait(1, sh)
 
 # Retrieve data from the Graph
 started = datetime.now()
