@@ -456,7 +456,7 @@ class AuctionKeeper:
             if (total_surplus - total_debt) >= (surplus_auction_amount_to_sell + surplus_buffer):
 
                 if self.arguments.bid_on_auctions and self.prot.balance_of(self.our_address) == Wad(0):
-                    self.logger.warning("Skipping opportunity to settle debt/surplus because there is no prot to bid")
+                    self.logger.warning("Skipping opportunity to start surplus auction as there is no prot to bid")
                     return
 
                 unqueued_unauctioned_debt = self.accounting_engine.unqueued_unauctioned_debt()
