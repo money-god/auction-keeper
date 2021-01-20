@@ -354,6 +354,28 @@ class TestAuctionKeeperSurplus(TransactionIgnoringTest):
         time_travel_by(self.web3, self.surplus_auction_house.bid_duration() + 1)
         assert self.surplus_auction_house.settle_auction(auction_id).transact()
 
+    def test_should_outbid_a_zero_bid(self, auction_id):
+        # given
+        (model, model_factory) = models(self.keeper, auction_id)
+        # and
+        auction = self.surplus_auction_house.bids(auction_id)
+        assert self.surplus_auction_house.increase_bid_size(auction_id, auction.amount_to_sell, Wad(1)).transact(from_address=self.other_address)
+        assert self.surplus_auction_house.bids(auction_id).bid_amount == Wad(1)
+
+        # when
+        simulate_model_output(model=model, price=Wad.from_number(0.0000006))
+        # and
+        self.keeper.check_all_auctions()
+        self.keeper.check_for_bids()
+        wait_for_other_threads()
+        # then
+        auction = self.surplus_auction_house.bids(auction_id)
+        assert round(Wad(auction.amount_to_sell) / auction.bid_amount, 2) == round(Wad.from_number(0.0000006), 2)
+
+        # cleanup
+        time_travel_by(self.web3, self.surplus_auction_house.bid_duration() + 1)
+        assert self.surplus_auction_house.settle_auction(auction_id).transact()
+
     def test_should_overbid_itself_if_model_has_updated_the_price(self, auction_id):
         # given
         (model, model_factory) = models(self.keeper, auction_id)

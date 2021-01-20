@@ -29,7 +29,7 @@ from requests.exceptions import RequestException
 from typing import Optional
 from web3 import Web3
 
-from pyflex import Address, web3_via_http
+from pyflex import Address, get_pending_transactions, web3_via_http 
 from pyflex.deployment import GfDeployment
 from pyflex.keys import register_keys
 from pyflex.lifecycle import Lifecycle
@@ -344,6 +344,8 @@ class AuctionKeeper:
 
         logging.info(f"Keeper will use {self.gas_price} for transactions and bids unless model instructs otherwise")
 
+        self.plunge()
+
     def approve(self):
         if self.arguments.swap_collateral:
             self.syscoin_eth_uniswap.approve(self.token_syscoin)
@@ -359,6 +361,16 @@ class AuctionKeeper:
         time.sleep(1)
         if self.collateral:
             self.collateral.approve(self.our_address, gas_price=self.gas_price)
+
+    def plunge(self):
+        pending_txes = get_pending_transactions(self.web3)
+        if len(pending_txes) > 0:
+            while len(pending_txes) > 0:
+                logging.warning(f"Cancelling first of {len(pending_txes)} pending transactions")
+                pending_txes[0].cancel(gas_price=self.gas_price)
+                # After the synchronous cancel, wait to see if subsequent transactions get mined
+                time.sleep(28)
+                pending_txes = get_pending_transactions(self.web3)
 
     def shutdown(self):
         with self.auctions_lock:
@@ -399,8 +411,10 @@ class AuctionKeeper:
         self.logger.debug(f"Evaluating {len(safes)} {self.collateral_type} safes to be liquidated if any are critical")
 
         for safe in safes.values():
-            is_critical = safe.locked_collateral * collateral_type.liquidation_price < safe.generated_debt * rate
-            if is_critical:
+            if self.is_shutting_down():
+                return
+
+            if self.liquidation_engine.can_liquidate(collateral_type, safe):
                 # If flash swap enabled, use flash proxy to liquidate and settle
                 if self.arguments.flash_swap and self.arguments.bid_on_auctions:
                     saviour = self.liquidation_engine.safe_saviours(collateral_type, safe.address)
@@ -423,7 +437,7 @@ class AuctionKeeper:
                                      f"min_lot={self.min_collateral_lot}")
                     continue
                 else:
-                    self._run_future(self.liquidation_engine.liquidate_safe(collateral_type, safe).transact_async(gas_price=self.gas_price))
+                    self.liquidation_engine.liquidate_safe(collateral_type, safe).transact(gas_price=self.gas_price)
 
         self.logger.info(f"Checked {len(safes)} safes in {(datetime.now()-started).seconds} seconds")
         # LiquidationEngine.liquidate implicitly starts the collateral auction; no further action needed.

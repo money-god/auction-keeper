@@ -355,6 +355,7 @@ def liquidate(geb: GfDeployment, c: Collateral, critical_safe: SAFE) -> int:
     assert isinstance(c, Collateral)
     assert isinstance(critical_safe, SAFE)
 
+    assert geb.liquidation_engine.can_liquidate(critical_safe.collateral_type, critical_safe)
     assert geb.liquidation_engine.liquidate_safe(critical_safe.collateral_type, critical_safe).transact()
     liquidations = geb.liquidation_engine.past_liquidations(1)
     assert len(liquidations) == 1
