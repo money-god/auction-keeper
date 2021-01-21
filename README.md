@@ -29,9 +29,9 @@ For every new block, all auctions from `1` to `auctionsStarted` are checked for 
 
 Examples:
 
-* [Collateral](CollateralDocker.md)
-* [Surplus](DebtDocker.md)
-* [Debt](SurplusDocker.md)
+* [Collateral](collateral-auction-keeper/running-in-docker.md)
+* [Surplus](surplus-auction-keeper/running-in-docker.md)
+* [Debt](debt-auction-keeper/running-in-docker.md)
 
 ### Running on a host
 
@@ -40,7 +40,7 @@ Pre-requisites: Python 3.6+
 Install `auction-keeper` dependencies with:
 
 ```text
-git clone https://github.com/makerdao/auction-keeper.git
+git clone https://github.com/reflexer-finance/auction-keeper.git
 cd auction-keeper
 git checkout tags/prai-demo
 git submodule update --init --recursive
@@ -51,9 +51,9 @@ The keeper can now be run with `bin/auction-keeper`.
 
 Auction specific examples:
 
-* [Collateral](CollateralHost.md)
-* [Surplus](DebtHost.md)
-* [Debt](SurplusHost.md)
+* [Collateral](collateral-auction-keeper/running-on-a-host.md)
+* [Surplus](surplus-auction-keeper/running-on-a-host.md)
+* [Debt](debt-auction-keeper/running-on-a-host.md)
 
 ## Configuration Reference
 
@@ -82,6 +82,12 @@ The following options determine the keeper's gas strategy and are mutually exclu
 `--ethgasstation-api-key MY_API_KEY` Use [ethgasstation.info](https://ethgasstation.info) for gas prices
 
 `--etherchain-gas-price` Use [etherchain.org](https://etherchain.org) for gas prices
+
+`--poanetwork-gas-price` Use [poa.network](https://gasprice.poa.network/) for gas prices
+
+`--etherscan-gas-price` Use [etherscan.io](https://etherscan.io/) for gas prices. Optional: `--etherscan-key KEY`. Rate-limited to 1request/5sec w/o a key.
+
+`--gasnow-gas-price` Use [gasnow.org](https://gasnow.org) for gas prices
 
 `--fixed-gas-price GWEI` Use a fixed gas price \(in GWEI\)
 
@@ -145,11 +151,13 @@ The following are the most recent Graph node endpoints for RAI:`--graph-endpoint
 
 **NOTE**: if you'd like to use Infura with your keeper and prefer the free-tier \(you do less than 100K requests per day\), `--block-check-interval` must be greater than `10` and `--bid-check-interval` must be greater than 180. However, this will make your keeper slower and it will not quickly bid in auctions.
 
-##### Flash swaps
+#### Flash swaps
 
-Flash swaps allow a keeper to participate in collateral auctions without any system coins.  The flash swap borrows the system coin necessary for the collateral auctions, wins the collateral at a discount and transferred the won collateral back to the keeper, all in one transaction. Note: If the overall transaction is not profitable, the swap will fail.  The the keeper only needs enough ether to pay for the gas of the swap.
+Flash swaps allow a keeper to participate in collateral auctions without any system coins.  The flash swap borrows the system coin necessary for the collateral auctions, wins the collateral at a discount and transferred the won collateral back to the keeper, all in one transaction. Note: If the overall transaction is not profitable, the swap will fail.  The keeper only needs enough ether to pay for the gas of the swap.
 
 `--flash-swap` Turn on Uniswap flash swaps for collateral auctions. Not supported for `--type debt` or `--type surplus`
+
+[Read more about flash swaps](collateral-auction-keeper/flash-swaps.md)
 
 #### Sharding/Settling
 
