@@ -4,8 +4,6 @@ description: Running a surplus auction keeper in a Docker container
 
 # Running in Docker
 
-_**Not available for PRAI**_
-
 {% hint style="info" %}
 In order to participate in surplus auctions you need to bid with protocol tokens
 {% endhint %}
@@ -79,4 +77,8 @@ Status: Downloaded newer image for reflexer/auction-keeper:prai-demo
 docker.io/reflexer/auction-keeper:prai-demo
 Password for /keystore/key.json:
 ```
+
+## Surplus Auctioning Process
+
+[Surplus Auctioning Process](surplus-auctions.md)
 

@@ -4,8 +4,6 @@ description: Running a surplus auction-keeper on a host
 
 # Running on a Host
 
-_**Not currently available on PRAI Demo**_
-
 {% hint style="info" %}
 In order to participate in surplus auctions you need to bid with protocol tokens
 {% endhint %}
@@ -62,6 +60,10 @@ bin/auction-keeper \
      --eth-from <KEEPER_ADDRESS> \
      --eth-key key_file=<KEYSTORE_FILE>
 ```
+
+## Surplus Auctioning Process
+
+[Surplus Auctioning Process](surplus-auctions.md)
 
 ### Then, substitute the following variables:
 
