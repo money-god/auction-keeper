@@ -19,7 +19,7 @@ from pprint import pformat
 from typing import Optional
 from web3 import Web3
 
-from pygasprice_client import EthGasStation, EtherchainOrg, POANetwork, Etherscan, Gasnow
+from pygasprice_client import EthGasStation, EtherchainOrg, POANetwork, Etherscan, GasNow
 from pyflex.gas import GasPrice, GeometricGasPrice, NodeAwareGasPrice
 
 
@@ -58,9 +58,9 @@ class DynamicGasPrice(NodeAwareGasPrice):
                 self.gas_station = Etherscan(refresh_interval=60, expiry=600)
         elif arguments.gasnow_gas:
             if arguments.gasnow_app_name:
-                self.gas_station = Gasnow(refresh_interval=60, expiry=600, app_name=arguments.gasnow_app_name)
+                self.gas_station = GasNow(refresh_interval=60, expiry=600, app_name=arguments.gasnow_app_name)
             else:
-                self.gas_station = Gasnow(refresh_interval=60, expiry=600)
+                self.gas_station = GasNow(refresh_interval=60, expiry=600)
         elif arguments.fixed_gas_price:
             self.fixed_gas = int(round(arguments.fixed_gas_price * self.GWEI))
         self.initial_multiplier = arguments.gas_initial_multiplier

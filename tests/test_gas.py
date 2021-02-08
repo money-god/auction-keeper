@@ -17,7 +17,7 @@
 
 import pytest
 from auction_keeper.main import AuctionKeeper
-from pygasprice_client import EthGasStation, POANetwork, EtherchainOrg, Etherscan, Gasnow
+from pygasprice_client import EthGasStation, POANetwork, EtherchainOrg, Etherscan, GasNow
 
 from auction_keeper.gas import DynamicGasPrice
 from tests.conftest import get_node_gas_price
@@ -121,7 +121,7 @@ class TestGasStrategy:
                                          f"--collateral-type {c.collateral_type.name} "
                                          f"--gasnow-gas-price "
                                          f"--model ./bogus-model.sh"), web3=geb.web3)
-        assert isinstance(keeper.gas_price.gas_station, Gasnow)
+        assert isinstance(keeper.gas_price.gas_station, GasNow)
         assert keeper.gas_price.gas_station.URL == "https://www.gasnow.org/api/v3/gas/price"
 
     def test_gasnow_key(self, geb, keeper_address):
@@ -134,7 +134,7 @@ class TestGasStrategy:
                                          f"--gasnow-gas-price "
                                          f"--gasnow-app-name MY_APP_NAME "
                                          f"--model ./bogus-model.sh"), web3=geb.web3)
-        assert isinstance(keeper.gas_price.gas_station, Gasnow)
+        assert isinstance(keeper.gas_price.gas_station, GasNow)
         assert keeper.gas_price.gas_station.URL == "https://www.gasnow.org/api/v3/gas/price?utm_source=MY_APP_NAME"
 
     def test_default_gas_config(self, web3, keeper_address):
