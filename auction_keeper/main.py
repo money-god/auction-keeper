@@ -357,7 +357,7 @@ class AuctionKeeper:
             if self.geb.system_coin.allowance_of(self.our_address, self.system_coin_join.address) > Wad.from_number(2**50):
                 return
             else:
-                self.geb.approve_system_coin(usr=self.our_address, gas_price=self.gas_price)
+                self.geb.approve_system_coin(self.our_address, gas_price=self.gas_price)
         time.sleep(1)
         if self.collateral:
             self.collateral.approve(self.our_address, gas_price=self.gas_price)
