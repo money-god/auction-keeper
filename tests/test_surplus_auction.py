@@ -60,6 +60,7 @@ class TestAuctionKeeperSurplus(TransactionIgnoringTest):
         self.keeper = AuctionKeeper(args=args(f"--eth-from {self.keeper_address} "
                                               f"--type surplus "
                                               f"--from-block 1 "
+                                              f"--bid-delay 0 "
                                               #f"--min-auction {self.min_auction} "
                                               f"--model ./bogus-model.sh"), web3=self.web3)
         self.keeper.approve()

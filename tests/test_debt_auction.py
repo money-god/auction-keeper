@@ -54,9 +54,9 @@ def auction_id(web3: Web3, geb: GfDeployment, auction_income_recipient_address, 
         current_bid = c.collateral_auction_house.bids(collateral_auction_id)
         bid_amount = Rad.from_number(1.9)
         assert geb.safe_engine.coin_balance(auction_income_recipient_address) > bid_amount
-        assert c.collateral_auction_house.increase_bid_size(collateral_auction_id, current_bid.amount_to_sell, bid_amount).transact(from_address=auction_income_recipient_address)
-        time_travel_by(web3, c.collateral_auction_house.bid_duration()+1)
-        assert c.collateral_auction_house.settle_auction(collateral_auction_id).transact()
+        #assert c.collateral_auction_house.increase_bid_size(collateral_auction_id, current_bid.amount_to_sell, bid_amount).transact(from_address=auction_income_recipient_address)
+        #time_travel_by(web3, c.collateral_auction_house.bid_duration()+1)
+        #assert c.collateral_auction_house.settle_auction(collateral_auction_id).transact()
 
     pop_debt_and_settle_debt(web3, geb, past_blocks=1200, cancel_auctioned_debt=False)
 
@@ -66,7 +66,6 @@ def auction_id(web3: Web3, geb: GfDeployment, auction_income_recipient_address, 
     assert geb.safe_engine.coin_balance(geb.accounting_engine.address) == Rad(0)
     assert geb.accounting_engine.auction_debt().transact(from_address=auction_income_recipient_address)
     return geb.debt_auction_house.auctions_started()
-
 
 @pytest.mark.timeout(600)
 class TestAuctionKeeperDebtAuction(TransactionIgnoringTest):
@@ -391,7 +390,7 @@ class TestAuctionKeeperDebtAuction(TransactionIgnoringTest):
         # cleanup
         time_travel_by(self.web3, self.debt_auction_house.bid_duration() + 1)
         assert self.debt_auction_house.settle_auction(auction_id).transact()
-
+     
     def test_should_bid_even_if_there_is_already_a_bidder(self, auction_id):
         # given
         (model, model_factory) = models(self.keeper, auction_id)
@@ -713,7 +712,6 @@ class MockDebtAuctionHouse:
                            high_bidder=Address("0x0000000000000000000000000000000000000000"),
                            bid_expiry=0,
                            auction_deadline=int(datetime.now(tz=timezone.utc).timestamp()) + self.total_auction_length)
-
 
 class TestDebtAuctionStrategy:
     def setup_class(self):

@@ -22,7 +22,7 @@ from mock import MagicMock
 from typing import Optional
 from web3 import Web3
 
-from auction_keeper.logic import Stance
+from auction_keeper.model import Stance
 from auction_keeper.main import AuctionKeeper
 from pyflex import Address, web3_via_http
 from pyflex.deployment import GfDeployment
