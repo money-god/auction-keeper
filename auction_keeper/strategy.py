@@ -65,7 +65,7 @@ class FixedDiscountCollateralAuctionStrategy(Strategy):
         self.min_amount_to_sell = min_amount_to_sell
         self.geb = geb
         self.our_address = our_address
-        self.last_redemption_price = Wad(0)
+        #self.last_redemption_price = Wad(0)
 
     def approve(self, gas_price: GasPrice):
         assert isinstance(gas_price, GasPrice)
@@ -115,9 +115,9 @@ class FixedDiscountCollateralAuctionStrategy(Strategy):
             self.logger.info(f"Our system coin balance is less than FixedDiscountCollateralAucttionHouse.minimum_bid(). Not bidding")
             return None, None, None
 
-        if self.last_redemption_price == Wad(0):
-            assert self.collateral_auction_house.get_collateral_bought(id, our_bid).transact()
-            self.last_redemption_price = self.collateral_auction_house.last_read_redemption_price()
+        #if self.last_redemption_price == Wad(0):
+        #    assert self.collateral_auction_house.get_collateral_bought(id, our_bid).transact()
+        #    self.last_redemption_price = self.collateral_auction_house.last_read_redemption_price()
 
         approximate_collateral, our_adjusted_bid = self.collateral_auction_house.get_approximate_collateral_bought(id, our_bid)
 
