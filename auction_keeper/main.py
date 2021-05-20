@@ -421,7 +421,8 @@ class AuctionKeeper:
 
                     if saviour != Address('0x0000000000000000000000000000000000000000'):
                         self.logger.warning(f"Can't use flash swap to liquidate and settle safe {safe.address} "
-                                            "because it has a saviour {saviour}")
+                                            "because it has a saviour {saviour}. Only liquidating.")
+                        self.liquidation_engine.liquidate_safe(collateral_type, safe).transact(gas_price=self.gas_price, gas_buffer=300000)
                         continue
 
                     self.logger.info(f"Using flash swap to liquidate and settle safe {safe}")
