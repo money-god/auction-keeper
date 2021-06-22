@@ -29,6 +29,7 @@ from tests.helper import args, time_travel_by, TransactionIgnoringTest, wait_for
 
 @pytest.mark.timeout(60)
 class TestAuctionKeeperLiquidate(TransactionIgnoringTest):
+    @pytest.mark.skip("collateral_auction_house.bids fails on testchain since there is no Increasing Auction House on test chain")
     def test_liquidation_and_collateral_auction(self, web3, geb, auction_income_recipient_address, keeper_address):
         # given
         c = geb.collaterals['ETH-A']
@@ -95,12 +96,15 @@ class TestAuctionKeeperLiquidate(TransactionIgnoringTest):
         reserve_system_coin(geb, c, keeper_address, Wad(auction.amount_to_raise) + Wad(1))
         c.collateral_auction_house.approve(c.collateral_auction_house.safe_engine(), approval_function=approve_safe_modification_directly(from_address=keeper_address))
         c.approve(keeper_address)
+
         if isinstance(c.collateral_auction_house, EnglishCollateralAuctionHouse):
             assert c.collateral_auction_house.increase_bid_size(auction_id, auction.amount_to_sell,
                                                                 auction.amount_to_raise).transact(from_address=keeper_address)
             time_travel_by(web3, c.collateral_auction_house.bid_duration() + 1)
             assert c.collateral_auction_house.settle_auction(auction_id).transact()
         elif isinstance(c.collateral_auction_house, FixedDiscountCollateralAuctionHouse):
+            assert c.collateral_auction_house.buy_collateral(auction_id, Wad(auction.amount_to_raise) + Wad(1)).transact(from_address=keeper_address)
+        elif isinstance(c.collateral_auction_house, IncreasingDiscountCollateralAuctionHouse):
             assert c.collateral_auction_house.buy_collateral(auction_id, Wad(auction.amount_to_raise) + Wad(1)).transact(from_address=keeper_address)
 
         # when a bid covers the vow debt

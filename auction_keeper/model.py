@@ -60,14 +60,14 @@ class Status():
                  bid_amount: Wad,
                  amount_to_sell: Wad,
                  amount_to_raise: Optional[Wad],
-                 sold_amount: Optional[Wad],
-                 raised_amount: Optional[Rad],
                  bid_increase: Optional[Wad],
                  high_bidder: Optional[Address],
                  block_time: int,
                  bid_expiry: Optional[int],
                  auction_deadline: int,
-                 price: Optional[Wad]):
+                 price: Optional[Wad],
+                 sold_amount: Optional[Wad]=None,
+                 raised_amount: Optional[Rad]=None):
         assert isinstance(id, int)
         assert isinstance(collateral_auction_house, Address) or (collateral_auction_house is None)
         assert isinstance(surplus_auction_house, Address) or (surplus_auction_house is None)

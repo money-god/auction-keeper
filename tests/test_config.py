@@ -22,6 +22,7 @@ import pytest
 from auction_keeper.main import AuctionKeeper
 from pyflex import Address, Transact, Wad
 from pyflex.auctions import EnglishCollateralAuctionHouse, FixedDiscountCollateralAuctionHouse
+from pyflex.auctions import IncreasingDiscountCollateralAuctionHouse
 from pyflex.auctions import PreSettlementSurplusAuctionHouse, DebtAuctionHouse
 from pyflex.gf import LiquidationEngine, CoinJoin, BasicCollateralJoin, AccountingEngine
 from pyflex.gas import GeometricGasPrice
@@ -164,7 +165,8 @@ class TestConfig:
                                          f"--model ./bogus-model.sh"), web3=web3)
 
         assert isinstance(keeper.collateral_auction_house, EnglishCollateralAuctionHouse) or \
-               isinstance(keeper.collateral_auction_house, FixedDiscountCollateralAuctionHouse)
+               isinstance(keeper.collateral_auction_house, FixedDiscountCollateralAuctionHouse) or \
+               isinstance(keeper.collateral_auction_house, IncreasingDiscountCollateralAuctionHouse)
         assert keeper.collateral.collateral_auction_house == keeper.collateral_auction_house
         assert keeper.collateral.collateral_type.name == 'ETH-A'
         assert keeper.surplus_auction_house is None

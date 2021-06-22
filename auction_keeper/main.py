@@ -35,13 +35,13 @@ from pyflex.keys import register_keys
 from pyflex.lifecycle import Lifecycle
 from pyflex.model import Token
 from pyflex.numeric import Wad, Ray, Rad
-from pyflex.auctions import FixedDiscountCollateralAuctionHouse
+from pyflex.auctions import IncreasingDiscountCollateralAuctionHouse, FixedDiscountCollateralAuctionHouse
 
 from auction_keeper.gas import DynamicGasPrice, UpdatableGasPrice
 from auction_keeper.logic import Auction, Auctions, Reservoir
 from auction_keeper.model import ModelFactory, Stance
 from auction_keeper.strategy import SurplusAuctionStrategy, DebtAuctionStrategy
-from auction_keeper.strategy import FixedDiscountCollateralAuctionStrategy
+from auction_keeper.strategy import IncreasingDiscountCollateralAuctionStrategy, FixedDiscountCollateralAuctionStrategy
 from auction_keeper.safe_history import SAFEHistory
 
 from pyexchange.uniswapv2 import UniswapV2
@@ -203,7 +203,7 @@ class AuctionKeeper:
         self.safe_history = None
         if self.collateral_auction_house:
             self.min_collateral_lot = Wad.from_number(self.arguments.min_collateral_lot)
-            self.strategy = FixedDiscountCollateralAuctionStrategy(self.collateral_auction_house,
+            self.strategy = IncreasingDiscountCollateralAuctionStrategy(self.collateral_auction_house,
                                                                    self.min_collateral_lot,
                                                                    self.geb, self.our_address)
             self.arguments.model = ['../models/collateral_model.sh']
@@ -599,7 +599,9 @@ class AuctionKeeper:
                     continue
 
                 if isinstance(self.collateral_auction_house, FixedDiscountCollateralAuctionHouse):
-                    self.handle_fixed_discount_bid(id=id, auction=auction, reservoir=reservoir)
+                    self.handle_discount_bid(id=id, auction=auction, reservoir=reservoir)
+                elif isinstance(self.collateral_auction_house, IncreasingDiscountCollateralAuctionHouse):
+                    self.handle_discount_bid(id=id, auction=auction, reservoir=reservoir)
                 else:
                     self.handle_bid(id=id, auction=auction, reservoir=reservoir)
 
@@ -621,8 +623,11 @@ class AuctionKeeper:
         logging.debug(f"Input for auction {id}: {input}")
         auction_deleted = (input.auction_deadline == 0)
         logging.debug(f"Auction {id} deleted: {auction_deleted}")
-        if isinstance(self.collateral_auction_house, FixedDiscountCollateralAuctionHouse):
+        if isinstance(self.collateral_auction_house, FixedDiscountCollateralAuctionHouse) or \
+                isinstance(self.collateral_auction_house, IncreasingDiscountCollateralAuctionHouse):
             auction_finished = False
+            if input.amount_to_sell == Wad(0):
+                auction_deleted = True
         else:
             auction_finished = (input.bid_expiry < input.block_time and input.bid_expiry != 0) or (input.auction_deadline < input.block_time)
 
@@ -674,13 +679,14 @@ class AuctionKeeper:
         # Feed the model with current state
         auction.feed_model(input)
 
-    def handle_fixed_discount_bid(self, id: int, auction: Auction, reservoir: Reservoir):
+    def handle_discount_bid(self, id: int, auction: Auction, reservoir: Reservoir):
         assert isinstance(id, int)
         assert isinstance(auction, Auction)
 
         output = auction.model_output()
         if output is None:
             return
+
         self.rebalance_system_coin()
         
         bid_price, bid_transact, cost = self.strategy.bid(id)
@@ -819,6 +825,7 @@ class AuctionKeeper:
                     else:
                         rebalanced = self.rebalance_system_coin()
                         if rebalanced and rebalanced > Wad(0):
+                            self.logger.info(f"Refilling reservoir with {Rad(rebalanced)} system coin.")
                             reservoir.refill(Rad(rebalanced))
                             return self.check_bid_cost(id, cost, reservoir, already_rebalanced=True)
 
@@ -840,7 +847,7 @@ class AuctionKeeper:
         if self.arguments.safe_engine_system_coin_target == 0:
             return Wad(0)
 
-        logging.info(f"Checking if internal system coin balance needs to be rebalanced")
+        logging.debug(f"Checking if internal system coin balance needs to be rebalanced")
         system_coin = self.system_coin_join.system_coin()
         token_balance = system_coin.balance_of(self.our_address)  # Wad
         # Prevent spending gas on small rebalances
@@ -881,7 +888,7 @@ class AuctionKeeper:
             self.logger.info(f"Exiting {str(system_coin_to_exit)} system coin from the SAFE Engine")
             assert self.system_coin_join.exit(self.our_address, system_coin_to_exit).transact(gas_price=self.gas_price)
             return system_coin_to_exit * -1
-        self.logger.info(f"system coin token balance: {str(system_coin.balance_of(self.our_address))}, "
+        self.logger.debug(f"system coin token balance: {str(system_coin.balance_of(self.our_address))}, "
                          f"SAFE Engine balance: {self.safe_engine.coin_balance(self.our_address)}")
 
     def join_system_coin(self, amount: Wad):

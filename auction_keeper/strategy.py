@@ -23,7 +23,7 @@ from auction_keeper.model import Status
 from pyflex import Address, Transact
 from pyflex.approval import directly, approve_safe_modification_directly
 from pyflex.auctions import AuctionContract, PreSettlementSurplusAuctionHouse, DebtAuctionHouse
-from pyflex.auctions import FixedDiscountCollateralAuctionHouse
+from pyflex.auctions import FixedDiscountCollateralAuctionHouse, IncreasingDiscountCollateralAuctionHouse
 from pyflex.gas import GasPrice
 from pyflex.numeric import Wad, Ray, Rad
 from pyflex.deployment import GfDeployment
@@ -112,12 +112,83 @@ class FixedDiscountCollateralAuctionStrategy(Strategy):
         # Always bid our entire balance.  If auction amount_to_raise is less, FixedDiscountCollateralAuctionHouse will reduce it.
         our_bid = Wad(self.geb.safe_engine.coin_balance(self.our_address)) 
         if our_bid <= self.collateral_auction_house.minimum_bid():
-            self.logger.info(f"Our system coin balance is less than FixedDiscountCollateralAucttionHouse.minimum_bid(). Not bidding")
+            self.logger.info(f"Our system coin balance is less than FixedDiscountCollateralAuctionHouse.minimum_bid(). Not bidding")
             return None, None, None
 
-        #if self.last_redemption_price == Wad(0):
-        #    assert self.collateral_auction_house.get_collateral_bought(id, our_bid).transact()
-        #    self.last_redemption_price = self.collateral_auction_house.last_read_redemption_price()
+        approximate_collateral, our_adjusted_bid = self.collateral_auction_house.get_approximate_collateral_bought(id, our_bid)
+
+        if approximate_collateral == Wad(0):
+            self.logger.info(f"Approximate collateral bought for auction {id} would be Wad(0). Not bidding")
+            return None, None, None
+        our_approximate_price = our_adjusted_bid/approximate_collateral
+
+        return our_approximate_price, self.collateral_auction_house.buy_collateral(id, our_bid), Rad(our_bid)
+
+class IncreasingDiscountCollateralAuctionStrategy(Strategy):
+    def __init__(self, collateral_auction_house: IncreasingDiscountCollateralAuctionHouse, min_amount_to_sell: Wad,
+                 geb: GfDeployment, our_address: Address):
+        assert isinstance(collateral_auction_house, IncreasingDiscountCollateralAuctionHouse)
+        assert isinstance(min_amount_to_sell, Wad)
+        assert isinstance(geb, GfDeployment)
+        assert isinstance(our_address, Address)
+        super().__init__(collateral_auction_house)
+
+        self.collateral_auction_house = collateral_auction_house
+        self.minimum_bid = collateral_auction_house.minimum_bid()
+        self.min_amount_to_sell = min_amount_to_sell
+        self.geb = geb
+        self.our_address = our_address
+
+    def approve(self, gas_price: GasPrice):
+        assert isinstance(gas_price, GasPrice)
+        self.collateral_auction_house.approve(self.collateral_auction_house.safe_engine(), approve_safe_modification_directly())
+
+    def auctions_started(self) -> int:
+        return self.collateral_auction_house.auctions_started()
+
+    def get_input(self, id: int) -> Status:
+        assert isinstance(id, int)
+
+        # Read auction state
+        bid = self.collateral_auction_house.bids(id)
+
+        # Prepare the model input from auction state
+        return Status(id=id,
+                      collateral_auction_house=self.collateral_auction_house.address,
+                      surplus_auction_house=None,
+                      debt_auction_house=None,
+                      bid_amount=None,
+                      amount_to_sell=bid.amount_to_sell,  # Wad
+                      amount_to_raise=bid.amount_to_raise,
+                      bid_increase=None,
+                      high_bidder=None,
+                      block_time=block_time(self.collateral_auction_house.web3),
+                      bid_expiry=None,
+                      auction_deadline=-1,
+                      price=None)
+
+    def bid(self, id: int) -> Tuple[Optional[Wad], Optional[Transact], Optional[Rad]]:
+        assert isinstance(id, int)
+
+        bid = self.collateral_auction_house.bids(id)
+        #remaining_to_raise = bid.amount_to_raise - bid.raised_amount
+        #remaining_to_sell = bid.amount_to_sell - bid.sold_amount
+
+        if bid.amount_to_sell == Wad(0):
+            return None, None, None
+
+        #if remaining_to_sell < self.min_amount_to_sell:
+        if bid.amount_to_sell < self.min_amount_to_sell:
+            self.logger.debug(f"amount_to_sell {bid.amount_to_sell} less than minimum "
+                              f"{self.min_amount_to_sell} for auction {id}")
+            return None, None, None
+
+        # Always bid our entire balance.  If auction amount_to_raise is less, IncreasingDiscountCollateralAuctionHouse will reduce it.
+        #our_bid = Wad(self.geb.safe_engine.coin_balance(self.our_address)) 
+        our_bid = Wad(bid.amount_to_raise) + Wad(1)
+        if our_bid <= self.collateral_auction_house.minimum_bid():
+            self.logger.info(f"Our system coin balance is less than IncreasingDiscountCollateralAuctionHouse.minimum_bid(). Not bidding")
+            return None, None, None
 
         approximate_collateral, our_adjusted_bid = self.collateral_auction_house.get_approximate_collateral_bought(id, our_bid)
 
