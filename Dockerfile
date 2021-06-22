@@ -1,4 +1,4 @@
-FROM python:3.6.6
+FROM python:3.8.5
 
 RUN groupadd -r keeper && useradd --no-log-init -r -g keeper keeper
 
