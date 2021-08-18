@@ -36,6 +36,8 @@ from pyflex.lifecycle import Lifecycle
 from pyflex.model import Token
 from pyflex.numeric import Wad, Ray, Rad
 from pyflex.auctions import IncreasingDiscountCollateralAuctionHouse, FixedDiscountCollateralAuctionHouse
+from pyflex import Transact
+Transact.gas_estimate_for_bad_txs = 1000000
 
 from auction_keeper.gas import DynamicGasPrice, UpdatableGasPrice
 from auction_keeper.logic import Auction, Auctions, Reservoir
@@ -117,6 +119,8 @@ class AuctionKeeper:
                             help="Maximum amount of slippage allowed when swapping collateral")
         parser.add_argument('--flash-swap', dest='flash_swap', action='store_true',
                             help="Use uniswap flash swaps to liquidate and settle auctions. No system coin or collateral is needed")
+        parser.add_argument('--flash-swap-pool', type=str, default='eth-v2', help="Uniswap pool to use flash swaps. Supported pools are 'eth-v2','dai-v3, and 'eth-v3'")
+
         parser.add_argument("--model", type=str, nargs='+',
                             help="Commandline to use in order to start the bidding model")
 
@@ -165,6 +169,9 @@ class AuctionKeeper:
         if self.arguments.flash_swap:
             if self.arguments.type != 'collateral':
                 raise RuntimeError("--flash-swap is only supported with --type=collateral")
+            if self.arguments.flash_swap_pool not in ['eth-v2', 'dai-v3', 'eth-v3']:
+                raise RuntimeError(f"Unsupported pool {self.arguments.flash_swap_pool} passed to --flash-swap-pool")
+
 
             # disable rebalancing when using flash swaps
             self.arguments.safe_engine_system_coin_target = 0
@@ -414,7 +421,7 @@ class AuctionKeeper:
             if self.is_shutting_down():
                 return
 
-            if self.liquidation_engine.can_liquidate(collateral_type, safe):
+            if self.liquidation_engine.can_liquidate(collateral_type, safe, False):
                 # If flash swap enabled, use flash proxy to liquidate and settle
                 if self.arguments.flash_swap and self.arguments.bid_on_auctions:
                     saviour = self.liquidation_engine.safe_saviours(collateral_type, safe.address)
@@ -425,11 +432,19 @@ class AuctionKeeper:
                         self.liquidation_engine.liquidate_safe(collateral_type, safe).transact(gas_price=self.gas_price, gas_buffer=300000)
                         continue
 
-                    self.logger.info(f"Using flash swap to liquidate and settle safe {safe}")
-                    self._run_future(self.collateral.keeper_flash_proxy.liquidate_and_settle_safe(safe).transact_async(gas=1000000, gas_price=self.gas_price))
+                    self.logger.info(f"Using {self.arguments.flash_swap_pool} flash swap to liquidate and settle safe {safe.address}")
+                    if self.arguments.flash_swap_pool == 'eth-v2':
+                        self._run_future(self.collateral.keeper_flash_proxy.liquidate_and_settle_safe(safe).\
+                                transact_async(gas=1000000, gas_price=self.gas_price))
+                    elif self.arguments.flash_swap_pool == 'dai-v3':
+                        self._run_future(self.collateral.keeper_flash_proxy_dai_v3.liquidate_and_settle_safe(safe).\
+                                transact_async(gas=1000000, gas_price=self.gas_price))
+                    elif self.arguments.flash_swap_pool == 'eth-v3':
+                        self._run_future(self.collateral.keeper_flash_proxy_v3.liquidate_and_settle_safe(safe).\
+                                transact_async(gas=1000000, gas_price=self.gas_price))
 
                 elif self.arguments.bid_on_auctions and available_system_coin == Wad(0):
-                    self.logger.warning(f"Skipping opportunity to liquidation safe {safe.address} "
+                    self.logger.warning(f"Skipping opportunity to liquidate safe {safe.address} "
                                         "because there is no system coin to bid")
                     break
 
@@ -563,8 +578,17 @@ class AuctionKeeper:
              
                 # use flash proxy to settle auction
                 if self.arguments.type == 'collateral' and self.arguments.flash_swap:
-                    self.logger.info(f"Using flash swap to settle auction {id}")
-                    self.collateral.keeper_flash_proxy.settle_auction(id).transact(gas=1000000)
+                    #self.logger.info(f"Using flash swap to settle auction {id}")
+                    #self.collateral.keeper_flash_proxy.settle_auction(id).transact(gas=1000000)
+                    if self.arguments.flash_swap_pool == 'eth-v2':
+                        self._run_future(self.collateral.keeper_flash_proxy.settle_auction(id).\
+                                transact_async(gas=1000000, gas_price=self.gas_price))
+                    elif self.arguments.flash_swap_pool == 'dai-v3':
+                        self._run_future(self.collateral.keeper_flash_proxy_dai_v3.settle_auction(id).\
+                                transact_async(gas=1000000, gas_price=self.gas_price))
+                    elif self.arguments.flash_swap_pool == 'eth-v3':
+                        self._run_future(self.collateral.keeper_flash_proxy_v3.settle_auction(id).\
+                                transact_async(gas=1000000, gas_price=self.gas_price))
                     continue
                 # Prevent growing the auctions collection beyond the configured size
                 if len(self.auctions.auctions) < self.arguments.max_auctions:

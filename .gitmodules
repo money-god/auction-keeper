@@ -7,3 +7,6 @@
 [submodule "lib/pyflex"]
 	path = lib/pyflex
 	url = https://github.com/reflexer-labs/pyflex.git
+[submodule "pyflex"]
+	path = pyflex
+	url = https://github.com/reflexer-labs/pyflex.git
