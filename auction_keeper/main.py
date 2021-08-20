@@ -119,7 +119,7 @@ class AuctionKeeper:
                             help="Maximum amount of slippage allowed when swapping collateral")
         parser.add_argument('--flash-swap', dest='flash_swap', action='store_true',
                             help="Use uniswap flash swaps to liquidate and settle auctions. No system coin or collateral is needed")
-        parser.add_argument('--flash-swap-pool', type=str, default='eth-v2', help="Uniswap pool to use flash swaps. Supported pools are 'eth-v2','dai-v3, and 'eth-v3'")
+        parser.add_argument('--flash-swap-pool', type=str, default='eth-v2', help="Uniswap pool to use flash swaps. Supported pools are 'eth-v2','dai-v3', 'usdc-v3', and 'eth-v3'")
 
         parser.add_argument("--model", type=str, nargs='+',
                             help="Commandline to use in order to start the bidding model")
@@ -169,7 +169,7 @@ class AuctionKeeper:
         if self.arguments.flash_swap:
             if self.arguments.type != 'collateral':
                 raise RuntimeError("--flash-swap is only supported with --type=collateral")
-            if self.arguments.flash_swap_pool not in ['eth-v2', 'dai-v3', 'eth-v3']:
+            if self.arguments.flash_swap_pool not in ['eth-v2', 'dai-v3', 'usdc-v3', 'eth-v3']:
                 raise RuntimeError(f"Unsupported pool {self.arguments.flash_swap_pool} passed to --flash-swap-pool")
 
 
@@ -439,6 +439,9 @@ class AuctionKeeper:
                     elif self.arguments.flash_swap_pool == 'dai-v3':
                         self._run_future(self.collateral.keeper_flash_proxy_dai_v3.liquidate_and_settle_safe(safe).\
                                 transact_async(gas=1000000, gas_price=self.gas_price))
+                    elif self.arguments.flash_swap_pool == 'usdc-v3':
+                        self._run_future(self.collateral.keeper_flash_proxy_usdc_v3.liquidate_and_settle_safe(safe).\
+                                transact_async(gas=1000000, gas_price=self.gas_price))
                     elif self.arguments.flash_swap_pool == 'eth-v3':
                         self._run_future(self.collateral.keeper_flash_proxy_v3.liquidate_and_settle_safe(safe).\
                                 transact_async(gas=1000000, gas_price=self.gas_price))
@@ -578,13 +581,15 @@ class AuctionKeeper:
              
                 # use flash proxy to settle auction
                 if self.arguments.type == 'collateral' and self.arguments.flash_swap:
-                    #self.logger.info(f"Using flash swap to settle auction {id}")
-                    #self.collateral.keeper_flash_proxy.settle_auction(id).transact(gas=1000000)
+                    self.logger.info(f"Using flash swap to settle auction {id}")
                     if self.arguments.flash_swap_pool == 'eth-v2':
                         self._run_future(self.collateral.keeper_flash_proxy.settle_auction(id).\
                                 transact_async(gas=1000000, gas_price=self.gas_price))
                     elif self.arguments.flash_swap_pool == 'dai-v3':
                         self._run_future(self.collateral.keeper_flash_proxy_dai_v3.settle_auction(id).\
+                                transact_async(gas=1000000, gas_price=self.gas_price))
+                    elif self.arguments.flash_swap_pool == 'usdc-v3':
+                        self._run_future(self.collateral.keeper_flash_proxy_usdc_v3.settle_auction(id).\
                                 transact_async(gas=1000000, gas_price=self.gas_price))
                     elif self.arguments.flash_swap_pool == 'eth-v3':
                         self._run_future(self.collateral.keeper_flash_proxy_v3.settle_auction(id).\
