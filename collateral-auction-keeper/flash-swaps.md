@@ -4,7 +4,7 @@
 
 Normally, the collateral auction-keeper uses RAI to bid on fixed discount collateral auctions. A keeper operator must acquire RAI and also maintain a RAI balance in the collateral keeper to be prepared for future collateral auctions. With collateral auction flash swaps, this is no longer necessary.
 
-The auction-keeper can be configured to use Uniswap flash swaps when bidding on collateral auctions. This allows the keeper to participate in collateral auctions with no upfront capital\(ether or RAI\) other than gas costs.
+The auction-keeper can be configured to use [Uniswap v2 or v3 flash swaps](https://uniswap.org/docs/v2/core-concepts/flash-swaps/) when bidding on collateral auctions. This allows the keeper to participate in collateral auctions with no upfront capital\(ether or RAI\) other than gas costs.
 
 ## Details
 
