@@ -18,25 +18,23 @@ or
 
 2\) bid on _existing_ auctions by calling `settleAuction` on _geb-keeper-flash-proxy_
 
-## Uniswap pools currently supported by keeper for flash swaps
+## Uniswap RAI pools currently supported by keeper for flash swaps
 
-[rai-dai-v3](https://info.uniswap.org/#/pools/0xcb0c5d9d92f4f2f80cce7aa271a1e148c226e19d)
-[rai-eth-v2](https://v2.info.uniswap.org/pair/0x8ae720a71622e824f576b4a8c03031066548a3b1)
-[rai-usdc-v3](https://info.uniswap.org/#/pools/0xfa7d7a0858a45c1b3b7238522a0c0d123900c118)
-[rai-eth-v3](https://info.uniswap.org/#/pools/0x14de8287adc90f0f95bf567c0707670de52e3813)
+[dai-v3](https://info.uniswap.org/#/pools/0xcb0c5d9d92f4f2f80cce7aa271a1e148c226e19d)
+
+[eth-v2](https://v2.info.uniswap.org/pair/0x8ae720a71622e824f576b4a8c03031066548a3b1)
+
+[usdc-v3](https://info.uniswap.org/#/pools/0xfa7d7a0858a45c1b3b7238522a0c0d123900c118)
+
+[eth-v3](https://info.uniswap.org/#/pools/0x14de8287adc90f0f95bf567c0707670de52e3813)
 
 ## Configuration
 
-How to enable Use `--flash-swaps` flag when starting a collateral auction-keeper
+How to enable:  use `--flash-swaps` flag when starting a collateral auction-keeper
 
-Specify a pool order.
-By default, the keeper will attemp to use the pools in this order: `rai-dai-v3, rai-eth-v2, rai-usdc-v3, rai-eth-v3`
+Specify a pool order: use `--flash-swap-pools` flag.  eg. `--flash-swap-pools eth-v2, dai-v3, usdc-v3, eth-v3`
 
-This order can be changed with the `--flash-swap-pools` flag.
-
-For example:
-
-`--flash-swap-pools eth-v2, dai-v3, usdc-v3, eth-v3`
+The default order is `rai-dai-v3, rai-eth-v2, rai-usdc-v3, rai-eth-v3`
 
 ## Flash Swaps in Action
 
