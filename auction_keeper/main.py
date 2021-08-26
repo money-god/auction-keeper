@@ -120,8 +120,6 @@ class AuctionKeeper:
                             help="Maximum amount of slippage allowed when swapping collateral")
         parser.add_argument('--flash-swap', dest='flash_swap', action='store_true',
                             help="Use uniswap flash swaps to liquidate and settle auctions. No system coin or collateral is needed")
-        parser.add_argument('--flash-swap-pool', type=str, default='eth-v2',
-                            help="Uniswap pool to use flash swaps. Supported pools are 'eth-v2','dai-v3','usdc-v3', and 'eth-v3'")
         parser.add_argument('--flash-swap-pools', type=lambda s: [item for item in s.split(',')], default='dai-v3,eth-v2,usdc-v3,eth-v3',
                             help="Comma-delimited list of Uniswap pools to try in order when doing flash swaps")
         parser.add_argument("--model", type=str, nargs='+',
