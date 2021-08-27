@@ -2,51 +2,50 @@
 
 ## Overview
 
-Normally, the collateral auction-keeper uses RAI to bid on fixed discount collateral auctions. A keeper operator must acquire RAI and also maintain a RAI balance in the collateral keeper to be prepared for future collateral auctions. With collateral auction flash swaps, this is no longer necessary.
+Normally, the collateral [auction-keeper](https://github.com/reflexer-labs/auction-keeper) uses system coins to bid in fixed discount collateral auctions. A keeper operator must acquire system coins to be prepared for future collateral auctions. With collateral auction flash swaps, this is no longer necessary.
 
-The auction-keeper can be configured to use [Uniswap v2 or v3 flash swaps](https://uniswap.org/docs/v2/core-concepts/flash-swaps/) when bidding on collateral auctions. This allows the keeper to participate in collateral auctions with no upfront capital\(ether or RAI\) other than gas costs.
+The auction-keeper can be configured to use Uniswap v2 or v3 flash swaps when bidding in collateral auctions. This allows the keeper to participate in collateral auctions with no upfront capital other than gas costs to execute the transaction.
 
 ## Details
 
-The collateral auction-keeper performs flash swaps with a single tx through the [geb-keeper-flash-proxy](https://github.com/reflexer-labs/geb-keeper-flash-proxy) contracts.
+The collateral auction-keeper performs flash swaps using the [geb-keeper-flash-proxy](https://github.com/reflexer-labs/geb-keeper-flash-proxy) contracts.
 
-The _geb-keeper-flash-proxy_ is used by _auction-keeper_ to:
+The flash proxy is used by the auction-keeper to:
 
-1\) liquidate a critical SAFE\(starting an auction\) and bid on the _new_ auction by calling `liquidateAndSettleSAFE` on _geb-keeper-flash-proxy_
+1\) Liquidate an underwater SAFE, start a new collateral auction and bid by calling `liquidateAndSettleSAFE`
 
 or
 
-2\) bid on _existing_ auctions by calling `settleAuction` on _geb-keeper-flash-proxy_
+2\) Bid in existing auctions by calling `settleAuction`
 
-## Uniswap RAI pools currently supported by keeper for flash swaps
+### Uniswap Pools Used for Bidding
 
-[dai-v3](https://info.uniswap.org/#/pools/0xcb0c5d9d92f4f2f80cce7aa271a1e148c226e19d)
-
-[eth-v2](https://v2.info.uniswap.org/pair/0x8ae720a71622e824f576b4a8c03031066548a3b1)
-
-[usdc-v3](https://info.uniswap.org/#/pools/0xfa7d7a0858a45c1b3b7238522a0c0d123900c118)
-
-[eth-v3](https://info.uniswap.org/#/pools/0x14de8287adc90f0f95bf567c0707670de52e3813)
+* [RAI/DAI Uniswap V3](https://info.uniswap.org/#/pools/0xcb0c5d9d92f4f2f80cce7aa271a1e148c226e19d)
+* [RAI/ETH Uniswap V2](https://v2.info.uniswap.org/pair/0x8ae720a71622e824f576b4a8c03031066548a3b1)
+* [RAI/USDC Uniswap V3](https://info.uniswap.org/#/pools/0xfa7d7a0858a45c1b3b7238522a0c0d123900c118)
+* [RAI/ETH Uniswap V3](https://info.uniswap.org/#/pools/0x14de8287adc90f0f95bf567c0707670de52e3813)
 
 ## Configuration
 
-How to enable:  use `--flash-swaps` flag when starting a collateral auction-keeper
+You can enable flashswaps using the `--flash-swaps` flag when starting a collateral auction-keeper.
 
-Specify a pool order: use `--flash-swap-pools` flag.  eg. `--flash-swap-pools eth-v2, dai-v3, usdc-v3, eth-v3`
+You can also specify multiple pools that the keeper loops through when trying to bid in an auction. You do this using the `--flash-swap-pools` flag. For example: 
 
-If a flash swap for a pool fails, the next in order will be tried.
+```text
+--flash-swap-pools eth-v2, dai-v3, usdc-v3, eth-v3
+```
 
-The default order is `dai-v3, eth-v2, usdc-v3, eth-v3`
+If a flash swap for a specific pool fails, the next in order will be tried.
+
+The default order is `dai-v3, eth-v2, usdc-v3, eth-v3`.
 
 ## Flash Swaps in Action
 
-Below is log output from _auction-keeper_ started with `--flash-swap` and  `--flash-swap-pools usdc-v3,dai-v3,eth-v2,eth-v3`
+Below is a log output from an _auction-keeper_ started with the `--flash-swap` and `--flash-swap-pools usdc-v3,dai-v3,eth-v2,eth-v3` flags.
 
-First, the _auction-keeper_ finds a critical SAFE and successfully calls `liquidateAndSettleSAFE` using the usdc-v3 flash proxy.
-The _auction-keeper_ finds another critical SAFE and tries to call `liquidateAndSettleSAFE` using the usdc-v3 flash proxy again. 
-As this is a much larger SAFE, this call fails due to lack of liquidity in rai-usdc-v3 pool. The _auction-keeper_ then successfully uses the dai-v3 flash-proxy to liquidate this SAFE.
+First, the _auction-keeper_ finds two undercollateralized SAFEs and successfully calls `liquidateAndSettleSAFE` using the `usdc-v3` flash proxy. The second SAFE is a large one so the call fails due to lack of liquidity in the RAI/USDC Uniswap v3 pool. The _auction-keeper_ then successfully uses the RAI/DAI Uniswap v3 flash-proxy to liquidate the large SAFE.
 
-Finally, the _auction-keeper_ finds a third ciritcal SAFE and successfully uses usdc-v3 flash proxy to `liquidateAndSettleSAFE`
+Finally, the _auction-keeper_ finds a third ciritcal SAFE and successfully uses the RAI/USDC Uniswap v3 flash proxy to `liquidateAndSettleSAFE`.
 
 ```text
 2021-08-26 14:25:18,258 INFO     Keeper connected to RPC connection http://172.31.46.114:8545
@@ -80,10 +79,8 @@ Finally, the _auction-keeper_ finds a third ciritcal SAFE and successfully uses 
 ## Caveats
 
 * Flash swaps are only supported for collateral auctions.
-* _auction-keeper_ will not do flash swaps on critical SAFEs with saviours. [Read more about saviours](https://docs.reflexer.finance/integrations/safe-insurance)
+* _auction-keeper_ will not do flash swaps on critical SAFEs with saviours. Read more about saviours [here](https://docs.reflexer.finance/liquidation-protection/safe-protection).
 
 ## Possible errors
 
-When liquidity is too low, the calls to the flash proxys will revert *or* run out of gas. In this case, the _auction-keeper_ will attempt the next uniswap pool in order.
-In the unlikely case all call fails(none of the pools have enough liquidity), the auction-keeper can be restarted without `--flash-swap` to bid normally with the keeper’s system coin.
-
+When liquidity is too low, calls to flash proxys will revert _or_ run out of gas. In this case, the _auction-keeper_ will try to use the next Uniswap pool specified in `--flash-swap-pools`. In the unlikely case where all calls fail \(none of the pools have enough liquidity\), the auction-keeper can be restarted without `--flash-swap` to bid normally using the keeper’s system coin balance inside the [SAFEEngine](https://docs.reflexer.finance/system-contracts/core/safe-engine).
