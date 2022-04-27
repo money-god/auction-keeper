@@ -23,15 +23,16 @@ from auction_keeper.logic import Reservoir
 from auction_keeper.main import AuctionKeeper
 from pyflex.numeric import Wad, Ray, Rad
 from tests.conftest import keeper_address, geb, our_address, web3, wrap_eth, purchase_system_coin
+from tests.conftest import get_keeper_address, get_geb, get_our_address, get_web3
 from tests.helper import args
 
 class TestSAFEEngineSystemCoin:
     def setup_method(self):
-        self.web3 = web3()
-        self.geb = geb(web3())
-        self.keeper_address = keeper_address(web3())
+        self.web3 = get_web3()
+        self.geb = get_geb(get_web3())
+        self.keeper_address = get_keeper_address(get_web3())
         self.geb.approve_system_coin(self.keeper_address)
-        self.our_address = our_address(web3())
+        self.our_address = get_our_address(get_web3())
         self.geb.approve_system_coin(self.our_address)
         self.collateral = self.geb.collaterals['ETH-B']
 
@@ -642,3 +643,5 @@ class TestSwapCollateralSlippage(TestSAFEEngineSystemCoin):
             self.shutdown_keeper()
 
         self.give_away_system_coin()
+
+

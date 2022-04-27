@@ -24,6 +24,7 @@ from pyflex.auctions import EnglishCollateralAuctionHouse, FixedDiscountCollater
 
 from tests.conftest import web3, geb, create_critical_safe, keeper_address, reserve_system_coin, purchase_system_coin, \
                            set_collateral_price
+from tests.conftest import get_keeper_address, get_geb, get_our_address, get_web3, get_other_address, get_auction_income_recipient_address
 from tests.helper import args, time_travel_by, TransactionIgnoringTest, wait_for_other_threads
 
 
@@ -77,9 +78,9 @@ class TestAuctionKeeperLiquidate(TransactionIgnoringTest):
 
     @classmethod
     def teardown_class(cls):
-        w3 = web3()
+        w3 = get_web3()
         print("tearing down TestAuctionKeeperLiquidate")
-        cls.eliminate_queued_debt(w3, geb(w3), keeper_address(w3))
+        cls.eliminate_queued_debt(w3, get_geb(w3), get_keeper_address(w3))
 
     @classmethod
     def eliminate_queued_debt(cls, web3, geb, keeper_address):

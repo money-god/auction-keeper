@@ -10,3 +10,4 @@ _virtualenv
 *.swp
 tests/logs
 *.csv
+coverage.*

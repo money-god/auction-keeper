@@ -28,6 +28,7 @@ from pyflex.gf import LiquidationEngine, CoinJoin, BasicCollateralJoin, Accounti
 from pyflex.gas import GeometricGasPrice
 from pyflex.token import DSToken
 from tests.conftest import get_node_gas_price, keeper_address, geb, web3
+from tests.conftest import get_keeper_address, get_geb, get_our_address, get_web3
 from tests.helper import args, TransactionIgnoringTest, wait_for_other_threads
 
 
@@ -35,9 +36,9 @@ class TestTransactionMocking(TransactionIgnoringTest):
     def setup_class(self):
         """ I'm excluding initialization of a specific collateral perchance we use multiple collaterals
         to improve test speeds.  This prevents us from instantiating the keeper as a class member. """
-        self.web3 = web3()
-        self.geb = geb(self.web3)
-        self.keeper_address = keeper_address(self.geb.web3)
+        self.web3 = get_web3()
+        self.geb = get_geb(self.web3)
+        self.keeper_address = get_keeper_address(self.geb.web3)
         self.web3.eth.defaultAccount = self.keeper_address.address
         self.collateral = self.geb.collaterals['ETH-A']
         self.collateral.approve(self.keeper_address)

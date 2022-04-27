@@ -30,6 +30,7 @@ from pyflex.numeric import Wad, Ray, Rad
 from tests.conftest import liquidate, create_critical_safe, pop_debt_and_settle_debt, keeper_address, geb, models, \
                            reserve_system_coin, simulate_model_output, web3, set_collateral_price
 from tests.conftest import is_safe_safe, other_address, our_address
+from tests.conftest import get_keeper_address, get_geb, get_our_address, get_web3, get_other_address, get_auction_income_recipient_address
 
 from tests.helper import args, time_travel_by, wait_for_other_threads, TransactionIgnoringTest
 from typing import Optional
@@ -64,9 +65,9 @@ class TestAuctionKeeperFixedDiscountCollateralAuctionHouse(TransactionIgnoringTe
     def setup_class(self):
         """ I'm excluding initialization of a specific collateral perchance we use multiple collaterals
         to improve test speeds.  This prevents us from instantiating the keeper as a class member. """
-        self.web3 = web3()
-        self.geb = geb(self.web3)
-        self.keeper_address = keeper_address(self.web3)
+        self.web3 = get_web3()
+        self.geb = get_geb(self.web3)
+        self.keeper_address = get_keeper_address(self.web3)
         self.collateral = self.geb.collaterals['ETH-B']
         self.min_auction = self.collateral.collateral_auction_house.auctions_started() + 1
         self.keeper = AuctionKeeper(args=args(f"--eth-from {self.keeper_address.address} "
@@ -406,8 +407,8 @@ class TestAuctionKeeperFixedDiscountCollateralAuctionHouse(TransactionIgnoringTe
 
     @classmethod
     def teardown_class(cls):
-        pop_debt_and_settle_debt(web3(), geb(web3()), past_blocks=1200, require_settle_debt=True)
-        cls.cleanup_debt(web3(), geb(web3()), other_address(web3()))
+        pop_debt_and_settle_debt(get_web3(), get_geb(get_web3()), past_blocks=1200, require_settle_debt=True)
+        cls.cleanup_debt(get_web3(), get_geb(get_web3()), get_other_address(get_web3()))
 
     @classmethod
     def cleanup_debt(cls, web3, geb, address):
@@ -420,11 +421,11 @@ class TestAuctionKeeperFixedDiscountCollateralAuctionHouse(TransactionIgnoringTe
             return
         
         # Need to add Wad(1) when going from Rad to Wad
-        reserve_system_coin(geb, geb.collaterals['ETH-A'], our_address(web3), Wad(system_coin_needed) + Wad(1))
-        assert geb.safe_engine.coin_balance(our_address(web3)) >= system_coin_needed
+        reserve_system_coin(geb, geb.collaterals['ETH-A'], get_our_address(web3), Wad(system_coin_needed) + Wad(1))
+        assert geb.safe_engine.coin_balance(get_our_address(web3)) >= system_coin_needed
 
         # transfer system coin to accounting engine
-        geb.safe_engine.transfer_internal_coins(our_address(web3), geb.accounting_engine.address, system_coin_needed).transact(from_address=our_address(web3))
+        geb.safe_engine.transfer_internal_coins(get_our_address(web3), geb.accounting_engine.address, system_coin_needed).transact(from_address=get_our_address(web3))
 
         system_coin_accounting_engine = geb.safe_engine.coin_balance(geb.accounting_engine.address)
 

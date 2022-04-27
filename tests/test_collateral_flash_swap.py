@@ -32,6 +32,7 @@ from pyflex.model import Token
 from tests.conftest import liquidate, create_critical_safe, pop_debt_and_settle_debt, keeper_address, geb, models, \
                            reserve_system_coin, simulate_model_output, web3, set_collateral_price
 from tests.conftest import is_safe_safe, other_address, our_address
+from tests.conftest import get_keeper_address, get_geb, get_our_address, get_web3
 
 from tests.helper import args, time_travel_by, wait_for_other_threads, TransactionIgnoringTest
 
@@ -68,9 +69,9 @@ class TestAuctionKeeperCollateralFlashSwap(TransactionIgnoringTest):
     def setup_class(self):
         """ I'm excluding initialization of a specific collateral perchance we use multiple collaterals
         to improve test speeds.  This prevents us from instantiating the keeper as a class member. """
-        self.web3 = web3()
-        self.geb = geb(self.web3)
-        self.keeper_address = keeper_address(self.web3)
+        self.web3 = get_web3()
+        self.geb = get_geb(self.web3)
+        self.keeper_address = get_keeper_address(self.web3)
         self.collateral = self.geb.collaterals['ETH-B']
         self.min_auction = self.collateral.collateral_auction_house.auctions_started() + 1
         self.keeper = AuctionKeeper(args=args(f"--eth-from {self.keeper_address.address} "

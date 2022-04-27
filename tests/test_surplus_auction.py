@@ -27,6 +27,7 @@ from pyflex.numeric import Wad, Ray, Rad
 from tests.conftest import c, geb, mint_prot, reserve_system_coin, set_collateral_price, web3, \
     our_address, keeper_address, other_address, auction_income_recipient_address, get_node_gas_price, \
     max_delta_debt, is_safe_safe, liquidate, create_safe_with_surplus, simulate_model_output, models, set_collateral_price
+from tests.conftest import get_keeper_address, get_geb, get_our_address, get_web3, get_other_address, get_auction_income_recipient_address
 from tests.helper import args, time_travel_by, wait_for_other_threads, TransactionIgnoringTest
 
 @pytest.fixture()
@@ -47,12 +48,12 @@ def auction_id(geb, c: Collateral, auction_income_recipient_address) -> int:
 @pytest.mark.timeout(380)
 class TestAuctionKeeperSurplus(TransactionIgnoringTest):
     def setup_method(self):
-        self.web3 = web3()
-        self.our_address = our_address(self.web3)
-        self.keeper_address = keeper_address(self.web3)
-        self.other_address = other_address(self.web3)
-        self.auction_income_recipient_address = auction_income_recipient_address(self.web3)
-        self.geb = geb(self.web3)
+        self.web3 = get_web3()
+        self.our_address = get_our_address(self.web3)
+        self.keeper_address = get_keeper_address(self.web3)
+        self.other_address = get_other_address(self.web3)
+        self.auction_income_recipient_address = get_auction_income_recipient_address(self.web3)
+        self.geb = get_geb(self.web3)
         self.surplus_auction_house = self.geb.surplus_auction_house
         self.surplus_auction_house.approve(self.geb.prot.address, directly(from_address=self.other_address))
         #self.min_auction = self.geb.surplus_auction_house.auctions_started() + 1
@@ -640,7 +641,7 @@ class TestAuctionKeeperSurplus(TransactionIgnoringTest):
 
     @classmethod
     def teardown_class(cls):
-        cls.geb = geb(web3())
+        cls.geb = get_geb(get_web3())
         #cls.liquidate_safe(web3(), cls.geb, c(cls.geb), auction_income_recipient_address(web3()), our_address(web3()))
 
     @classmethod

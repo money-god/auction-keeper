@@ -30,6 +30,7 @@ from pyflex.deployment import GfDeployment
 from pyflex.numeric import Wad, Ray, Rad
 from tests.conftest import liquidate, create_critical_safe, pop_debt_and_settle_debt, auction_income_recipient_address, keeper_address, geb, \
     models, our_address, other_address, reserve_system_coin, simulate_model_output, web3
+from tests.conftest import get_keeper_address, get_geb, get_our_address, get_web3, get_other_address, get_auction_income_recipient_address
 from tests.conftest import is_safe_safe, purchase_system_coin
 from tests.helper import args, time_travel_by, wait_for_other_threads, TransactionIgnoringTest
 from web3 import Web3
@@ -70,12 +71,12 @@ def auction_id(web3: Web3, geb: GfDeployment, auction_income_recipient_address, 
 @pytest.mark.timeout(600)
 class TestAuctionKeeperDebtAuction(TransactionIgnoringTest):
     def setup_method(self):
-        self.web3 = web3()
-        self.our_address = our_address(self.web3)
-        self.keeper_address = keeper_address(self.web3)
-        self.other_address = other_address(self.web3)
-        self.auction_income_recipient_address = auction_income_recipient_address(self.web3)
-        self.geb = geb(self.web3)
+        self.web3 = get_web3()
+        self.our_address = get_our_address(self.web3)
+        self.keeper_address = get_keeper_address(self.web3)
+        self.other_address = get_other_address(self.web3)
+        self.auction_income_recipient_address = get_auction_income_recipient_address(self.web3)
+        self.geb = get_geb(self.web3)
         self.debt_auction_house = self.geb.debt_auction_house
         self.debt_auction_house.approve(self.geb.safe_engine.address, approval_function=approve_safe_modification_directly(from_address=self.keeper_address))
         self.debt_auction_house.approve(self.geb.safe_engine.address, approval_function=approve_safe_modification_directly(from_address=self.other_address))
@@ -665,7 +666,7 @@ class TestAuctionKeeperDebtAuction(TransactionIgnoringTest):
 
     @classmethod
     def teardown_class(cls):
-        cls.cleanup_debt(web3(), geb(web3()), other_address(web3()))
+        cls.cleanup_debt(get_web3(), get_geb(get_web3()), get_other_address(get_web3()))
 
     @classmethod
     def cleanup_debt(cls, web3, geb, address):
@@ -677,10 +678,10 @@ class TestAuctionKeeperDebtAuction(TransactionIgnoringTest):
             return
        
         # Add Wad(1) when going from Rad to Wad
-        reserve_system_coin(geb, geb.collaterals['ETH-A'], our_address(web3), Wad(system_coin_needed) + Wad(1))
+        reserve_system_coin(geb, geb.collaterals['ETH-A'], get_our_address(web3), Wad(system_coin_needed) + Wad(1))
 
         # transfer system coin to accounting engine
-        geb.safe_engine.transfer_internal_coins(our_address(web3), geb.accounting_engine.address, system_coin_needed).transact(from_address=our_address(web3))
+        geb.safe_engine.transfer_internal_coins(get_our_address(web3), geb.accounting_engine.address, system_coin_needed).transact(from_address=get_our_address(web3))
 
         system_coin_accounting_engine = geb.safe_engine.coin_balance(geb.accounting_engine.address)
 
@@ -715,7 +716,7 @@ class MockDebtAuctionHouse:
 
 class TestDebtAuctionStrategy:
     def setup_class(self):
-        self.geb = geb(web3())
+        self.geb = get_geb(get_web3())
         self.strategy = DebtAuctionStrategy(self.geb.debt_auction_house)
         self.mock_debt_auction_house = MockDebtAuctionHouse()
 

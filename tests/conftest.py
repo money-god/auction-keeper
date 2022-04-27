@@ -74,6 +74,36 @@ def other_address(web3):
 def auction_income_recipient_address(web3):
     return Address(web3.eth.accounts[3])
 
+def get_web3():
+    # These details are specific to the GEB testchain used for pyflex unit tests.
+    web3 = web3_via_http("http://0.0.0.0:8545", 3, 100)
+    web3.eth.defaultAccount = "0x50FF810797f75f6bfbf2227442e0c961a8562F4C"
+    register_keys(web3,
+                  ["key_file=lib/pyflex/tests/config/keys/UnlimitedChain/key1.json,pass_file=/dev/null",
+                   "key_file=lib/pyflex/tests/config/keys/UnlimitedChain/key2.json,pass_file=/dev/null",
+                   "key_file=lib/pyflex/tests/config/keys/UnlimitedChain/key3.json,pass_file=/dev/null",
+                   "key_file=lib/pyflex/tests/config/keys/UnlimitedChain/key4.json,pass_file=/dev/null",
+                   "key_file=lib/pyflex/tests/config/keys/UnlimitedChain/key.json,pass_file=/dev/null"])
+
+    # reduce logspew
+    logging.getLogger("web3").setLevel(logging.INFO)
+    logging.getLogger("urllib3").setLevel(logging.INFO)
+    logging.getLogger("asyncio").setLevel(logging.INFO)
+
+    return web3
+
+def get_our_address(web3):
+    return Address(web3.eth.accounts[0])
+
+def get_keeper_address(web3):
+    return Address(web3.eth.accounts[1])
+
+def get_other_address(web3):
+    return Address(web3.eth.accounts[2])
+
+def get_auction_income_recipient_address(web3):
+    return Address(web3.eth.accounts[3])
+
 
 def wrap_eth(geb: GfDeployment, address: Address, amount: Wad):
     assert isinstance(geb, GfDeployment)
@@ -106,6 +136,13 @@ def geb(web3):
 
 @pytest.fixture(scope="session")
 def c(geb):
+    return geb.collaterals['ETH-B']
+
+def get_geb(web3):
+    return GfDeployment.from_node(web3, 'rai')
+
+
+def get_c(geb):
     return geb.collaterals['ETH-B']
 
 
@@ -197,8 +234,8 @@ def purchase_system_coin(amount: Wad, recipient: Address):
     assert isinstance(amount, Wad)
     assert isinstance(recipient, Address)
 
-    g = geb(web3())
-    seller = auction_income_recipient_address(web3())
+    g = get_geb(get_web3())
+    seller = get_auction_income_recipient_address(get_web3())
     reserve_system_coin(g, g.collaterals['ETH-C'], seller, amount)
     g.approve_system_coin(seller)
     g.approve_system_coin(recipient)

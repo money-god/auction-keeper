@@ -875,6 +875,9 @@ class AuctionKeeper:
         if self.arguments.safe_engine_system_coin_target == 0:
             return Wad(0)
 
+        if self.arguments.type == 'surplus':
+            return Wad(0)
+
         logging.debug(f"Checking if internal system coin balance needs to be rebalanced")
         system_coin = self.system_coin_join.system_coin()
         token_balance = system_coin.balance_of(self.our_address)  # Wad
