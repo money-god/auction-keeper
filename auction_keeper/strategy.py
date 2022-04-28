@@ -200,14 +200,16 @@ class IncreasingDiscountCollateralAuctionStrategy(Strategy):
         return our_approximate_price, self.collateral_auction_house.buy_collateral(id, our_bid), Rad(our_bid)
 
 class SurplusAuctionStrategy(Strategy):
-    def __init__(self, surplus_auction_house: PreSettlementSurplusAuctionHouse, prot: Address):
+    def __init__(self, surplus_auction_house: PreSettlementSurplusAuctionHouse, prot: Address, geb: GfDeployment):
         assert isinstance(surplus_auction_house, PreSettlementSurplusAuctionHouse)
         assert isinstance(prot, Address)
+        assert isinstance(geb, GfDeployment)
         super().__init__(surplus_auction_house)
 
         self.surplus_auction_house = surplus_auction_house
         self.bid_increase = surplus_auction_house.bid_increase()
         self.prot = prot
+        self.geb = geb
 
     def approve(self, gas_price: GasPrice):
         self.surplus_auction_house.approve(self.prot, directly(gas_price=gas_price))
@@ -220,6 +222,9 @@ class SurplusAuctionStrategy(Strategy):
 
         # Read auction state
         bid = self.surplus_auction_house.bids(id)
+
+        # get latest redemption price
+        redemption_price = self.geb.redemption_price_snap.snapped_price()
 
         # Prepare the model input from auction state
         return Status(id=id,
@@ -236,14 +241,15 @@ class SurplusAuctionStrategy(Strategy):
                       block_time=block_time(self.surplus_auction_house.web3),
                       bid_expiry=bid.bid_expiry,
                       auction_deadline=bid.auction_deadline,
-                      price=Wad(bid.amount_to_sell / Rad(bid.bid_amount)) if bid.bid_amount > Wad.from_number(0.000001) else None)
+                      price=Wad(bid.amount_to_sell * Rad(redemption_price) / Rad(bid.bid_amount)) if bid.bid_amount > Wad.from_number(0) else None)
 
     def bid(self, id: int, price: Wad) -> Tuple[Optional[Wad], Optional[Transact], Optional[Rad]]:
         assert isinstance(id, int)
         assert isinstance(price, Wad)
 
         bid = self.surplus_auction_house.bids(id)
-        our_bid = bid.amount_to_sell / Rad(price)
+        redemption_price = self.geb.redemption_price_snap.snapped_price()
+        our_bid = bid.amount_to_sell * Rad(redemption_price) / Rad(price)
 
         if our_bid >= Rad(bid.bid_amount) * Rad(self.bid_increase) and our_bid > Rad(bid.bid_amount):
             return price, self.surplus_auction_house.increase_bid_size(id, bid.amount_to_sell, Wad(our_bid)), Rad(our_bid)

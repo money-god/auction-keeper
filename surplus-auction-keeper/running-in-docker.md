@@ -8,43 +8,20 @@ description: Running a surplus auction keeper in a Docker container
 In order to participate in surplus auctions you need to bid with protocol tokens
 {% endhint %}
 
-## 1\) Create a model file
+## 1\) Modify model file as needed
 
-Pick a protocol token/system coin price and paste the following code into `surplus_model.sh`:
-
-```text
-#!/usr/bin/env bash
-while true; do
-  echo "{\"price\": \"325.0\"}"
-  sleep 120                   
-done
-```
+A basic surplus auction bidding model can be found in `models/surplus_model.py`. It can be modifed to change `MAX_BID_PRICE` or fetch the latest protocol token price from an external source.
 
 ### Then:
 
-`chmod +x surplus_model.sh`
+`chmod +x surplus_model.py`
 
-For more information about bidding models, see this.
+For more information about bidding models, see [Bidding Models](BiddingModels.md)
 
-## 2\) Create the keeper run file
+## 2\) Modify keeper run file
 
-Create a file called `run_auction_keeper.sh` and paste the following code in it:
+Modify the following variables in `run_surplus_keeper.sh`
 
-```text
-#!/bin/bash
-
-docker run -it \
-  -v <KEYSTORE_DIR>:/keystore \
-  -v <MODEL_DIR>:/models \
-    reflexer/auction-keeper \
-        --type surplus \
-        --model /models/surplus_model.sh \
-        --rpc-uri <ETH_RPC_URL> \
-        --eth-from <KEEPER_ADDRESS> \
-        --eth-key key_file=/keystore/<KEYSTORE_FILE>
-```
-
-### Then, substitute the following variables:
 
 `KEYSTORE_DIR` - the local directory where your keystore file is
 
@@ -63,11 +40,11 @@ For more information about this keystore format and how to generate them:
 
 ### Then:
 
-`chmod +x run_auction_keeper.sh`
+`chmod +x run_surplus_keeper.sh`
 
 ## 4\) Start the keeper and enter your keystore file password
 
-`./run_auction_keeper.sh`
+`./run_surplus_keeper.sh`
 
 ```text
 $ ./run_auction_keeper.sh
