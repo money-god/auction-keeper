@@ -5,11 +5,14 @@ ETH_RPC_URL=<ETH RPC URL>
 
 # Full path
 KEYSTORE_DIR=<KEYSTORE DIR>
+
 KEYSTORE_FILE=<KEYSTORE FILE>
 
 # Full path
 MODEL_DIR=<MODEL DIR>
+
 MODEL_FILE=<MODEL FILE>
+GAS_MAXIMUM=200
 
 docker pull reflexer/auction-keeper:latest
 
@@ -25,4 +28,5 @@ docker run -it \
         --eth-key "key_file=/keystore/${KEYSTORE_FILE}" \
         --block-check-interval 30 \
         --bid-check-interval 30 \
-	--min-auction 3
+	--min-auction 3 \
+	--gas-maximum ${GAS_MAXIMUM}

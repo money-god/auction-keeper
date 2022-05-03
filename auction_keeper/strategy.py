@@ -224,7 +224,7 @@ class SurplusAuctionStrategy(Strategy):
         bid = self.surplus_auction_house.bids(id)
 
         # get latest redemption price
-        redemption_price = self.geb.redemption_price_snap.snapped_price()
+        redemption_price = self.geb.oracle_relayer.redemption_price()
 
         # Prepare the model input from auction state
         return Status(id=id,
@@ -248,7 +248,7 @@ class SurplusAuctionStrategy(Strategy):
         assert isinstance(price, Wad)
 
         bid = self.surplus_auction_house.bids(id)
-        redemption_price = self.geb.redemption_price_snap.snapped_price()
+        redemption_price = self.geb.oracle_relayer.redemption_price()
         our_bid = bid.amount_to_sell * Rad(redemption_price) / Rad(price)
 
         if our_bid >= Rad(bid.bid_amount) * Rad(self.bid_increase) and our_bid > Rad(bid.bid_amount):
