@@ -77,7 +77,7 @@ class AuctionKeeper:
                             help="Do not bid on auctions. This includes flash swaps")
         parser.add_argument('--settle-auctions-for', type=str, nargs="+",
                             help="List of addresses for which auctions will be settled")
-        parser.add_argument('--min-auction', type=int, default=0,
+        parser.add_argument('--min-auction', type=int, default=1,
                             help="Lowest auction id to consider")
         parser.add_argument('--max-auctions', type=int, default=1000,
                             help="Maximum number of auctions to simultaneously interact with, "
@@ -703,7 +703,7 @@ class AuctionKeeper:
         # Read auction state from the chain
         input = self.strategy.get_input(id)
 
-        logging.debug(f"Feeding auction {id} model input {input}")
+        logging.info(f"Feeding auction {id} model input {input.to_dict()}")
         # Feed the model with current state
         auction.feed_model(input)
 
@@ -771,6 +771,7 @@ class AuctionKeeper:
 
         output = auction.model_output()
         if output is None:
+            self.logger.debug(f"No model output for auction {id}")
             return
 
         bid_price, bid_transact, cost = self.strategy.bid(id, output.price)
@@ -779,6 +780,7 @@ class AuctionKeeper:
         # By continuing, we'll burn through gas fees while the keeper pointlessly retries the bid.
         if cost is not None:
             if not self.check_bid_cost(id, cost, reservoir):
+                self.logger.info(f"check_bid_cost() is false for auction {id}")
                 return
 
         if bid_price is not None and bid_transact is not None:
@@ -864,7 +866,7 @@ class AuctionKeeper:
         elif self.surplus_auction_house:
             prot_balance = self.prot.balance_of(self.our_address)
             if cost > Rad(prot_balance):
-                self.logger.debug(f"Bid cost {str(cost)} exceeds reservoir level of {reservoir.level}; "
+                self.logger.info(f"Bid cost {str(cost)} exceeds reservoir level of {reservoir.level}; "
                                   "bid will not be submitted")
                 return False
         return True

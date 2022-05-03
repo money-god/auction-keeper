@@ -32,7 +32,10 @@ This creates a virtual environment and installs requirements:
 
 ## 2\) Modify model file as needed
 
-A basic surplus auction bidding model can be found in `models/surplus_model.py`. It can be modifed to change `MAX_BID_PRICE` or fetch the latest protocol token price from an external source. 
+A basic surplus auction bidding model can be found in `models/surplus_model.py`.
+ It **must** be modifed to change `CURRENT_FLX_USD_PRICE`, which is currently set as a constant. However, the script can be modified to fetch the latest protocol token price from an external source. 
+
+The minimum acceptable profit when bidding is determined by `MINIMUM_FLX_MULTIPLIER` in the model file and is set to `1.10`. This means the lowest price(in RAI) you will accept for protocol tokens is 110% of `CURRENT_FLX_USD_PRICE`.
 
 ### Then:
 
@@ -40,28 +43,13 @@ A basic surplus auction bidding model can be found in `models/surplus_model.py`.
 
 For more information about bidding models, see [Bidding Models](../BiddingModels.md)
 
-## 3\) Create the keeper run file
+## 3\) Modify keeper run file
 
-Create a file called `run_surplus_keeper.sh` and paste the following code in it:
-
-```text
-#!/bin/bash
-bin/auction-keeper \
-     --type surplus \
-     --model surplus_model.py \
-     --rpc-uri <ETH_RPC_URL> \
-     --eth-from <KEEPER_ADDRESS> \
-     --eth-key key_file=<KEYSTORE_FILE> \
-     --block-check-interval 30 \
-     --bid-check-interval 30
-
-```
-
-Modify the following variables in `run_surplus_keeper.sh`
-
-`ETH_RPC_URL` - the URL of your ethereum RPC connection
+Modify the following variables in `run_surplus_keeper_host.sh`
 
 `KEEPER_ADDRESS` - the keeper's address. It should be in checksummed format \(not lowercase\).
+
+`ETH_RPC_URL` - the URL of your ethereum RPC connection
 
 `KEYSTORE_FILE` - your Ethereum UTC JSON keystore filename
 
@@ -72,14 +60,14 @@ For more information about this keystore format and how to generate them, check:
 
 ### Ensure script is executable
 
-`chmod +x run_surplus_keeper.sh`
+`chmod +x run_surplus_keeper_host.sh`
 
 ## 4\) Start the keeper and enter your keystore file password
 
-`./run_surplus_keeper.sh`
+`./run_surplus_keeper_host.sh`
 
 ```text
-$ ./run_surplus_keeper.sh
+$ ./run_surplus_keeper_host.sh
 Password for /keystore/key.json:
 ```
 

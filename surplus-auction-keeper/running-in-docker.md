@@ -10,7 +10,10 @@ In order to participate in surplus auctions you need to bid with protocol tokens
 
 ## 1\) Modify model file as needed
 
-A basic surplus auction bidding model can be found in `models/surplus_model.py`. It can be modifed to change `MAX_BID_PRICE` or fetch the latest protocol token price from an external source.
+A basic surplus auction bidding model can be found in `models/surplus_model.py`.
+ It **must** be modifed to change `CURRENT_FLX_USD_PRICE`, which is currently set as a constant. However, the script can be modified to fetch the latest protocol token price from an external source.
+
+The minimum acceptable profit when bidding is determined by `MINIMUM_FLX_MULTIPLIER` in the model file and is set to `1.10`. This means the lowest price(in RAI) you will accept for protocol tokens is 110% of `CURRENT_FLX_USD_PRICE`.
 
 ### Then:
 
@@ -23,9 +26,13 @@ For more information about bidding models, see [Bidding Models](../BiddingModels
 Modify the following variables in `run_surplus_keeper.sh`
 
 
-`KEYSTORE_DIR` - the local directory where your keystore file is
+`KEEPER_ADDRESS` - the keeper's address. It should be in checksummed format \(not lowercase\)
 
-`MODEL_DIR` - the local directory where your `surplus_model.sh` file is
+`ETH_RPC_URL` - the URL of your Ethereum RPC connection
+
+`KEYSTORE_DIR` - the full path of the directory where your keystore file is
+
+`MODEL_DIR` - the full path of directory where your `surplus_model.py` file is
 
 `KEYSTORE_FILE` - your Ethereum UTC JSON keystore filename
 
@@ -34,9 +41,6 @@ For more information about this keystore format and how to generate them:
 * [Ethereum UTC / JSON Wallet Encryption](https://wizardforcel.gitbooks.io/practical-cryptography-for-developers-book/content/symmetric-key-ciphers/ethereum-wallet-encryption.html)
 * [keythereum](https://github.com/ethereumjs/keythereum)
 
-`ETH_RPC_URL` - the URL of your ethereum RPC connection
-
-`KEEPER_ADDRESS` - the keeper's address. It should be in checksummed format \(not lowercase\)
 
 ### Then:
 

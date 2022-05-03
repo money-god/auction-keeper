@@ -3,9 +3,12 @@
 KEEPER_ADDRESS=<KEEPER ADDRESS>
 ETH_RPC_URL=<ETH RPC URL>
 
-KEYSTORE_DIR=<FULL PATH OF KEYSTORE DIR>
+# Full path
+KEYSTORE_DIR=<KEYSTORE DIR>
 KEYSTORE_FILE=<KEYSTORE FILE>
-MODEL_DIR=<FULL PATH OF MODEL DIR>
+
+# Full path
+MODEL_DIR=<MODEL DIR>
 MODEL_FILE=<MODEL FILE>
 
 docker pull reflexer/auction-keeper:latest
@@ -22,3 +25,4 @@ docker run -it \
         --eth-key "key_file=/keystore/${KEYSTORE_FILE}" \
         --block-check-interval 30 \
         --bid-check-interval 30 \
+	--min-auction 3
