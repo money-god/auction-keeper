@@ -34,7 +34,7 @@ MINIMUM_FLX_MULTIPLIER = 1.10  # Sell FLX for 110% of current price
 # The minimum auction bid increase can be low, setting a higher one can prevent too many bids
 # Example: 1.10 will have a bid increase of 10%
 # If you want to always use the minimum bid increase allowed, set this to 0
-MY_BID_INCREASE = 0
+MY_BID_INCREASE = 1.03
 
 for auction_input in sys.stdin:
     auction_state = json.loads(auction_input)
