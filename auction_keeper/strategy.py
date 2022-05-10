@@ -259,12 +259,13 @@ class SurplusAuctionStrategy(Strategy):
 
 
 class DebtAuctionStrategy(Strategy):
-    def __init__(self, debt_auction_house: DebtAuctionHouse):
+    def __init__(self, debt_auction_house: DebtAuctionHouse, geb: GfDeployment):
         assert isinstance(debt_auction_house, DebtAuctionHouse)
         super().__init__(debt_auction_house)
 
         self.debt_auction_house = debt_auction_house
         self.bid_increase = debt_auction_house.bid_decrease()
+        self.geb = geb
 
     def approve(self, gas_price: GasPrice):
         self.debt_auction_house.approve(self.debt_auction_house.safe_engine(), approve_safe_modification_directly(gas_price=gas_price))
@@ -277,6 +278,9 @@ class DebtAuctionStrategy(Strategy):
 
         # Read auction state
         bid = self.debt_auction_house.bids(id)
+
+        # get latest redemption price
+        redemption_price = self.geb.oracle_relayer.redemption_price()
 
         # Prepare the model input from auction state
         return Status(id=id,
@@ -293,7 +297,8 @@ class DebtAuctionStrategy(Strategy):
                       block_time=block_time(self.debt_auction_house.web3),
                       bid_expiry=bid.bid_expiry,
                       auction_deadline=bid.auction_deadline,
-                      price=Wad(bid.bid_amount / Rad(bid.amount_to_sell)) if Wad(bid.bid_amount) != Wad(0) else None)
+                      price=Wad(bid.bid_amount * Rad(redemption_price) / Rad(bid.amount_to_sell)) if Wad(bid.bid_amount) != Wad(0) else None)
+
 
     def bid(self, id: int, price: Wad) -> Tuple[Optional[Wad], Optional[Transact], Optional[Rad]]:
         assert isinstance(id, int)

@@ -226,7 +226,7 @@ class AuctionKeeper:
         elif self.surplus_auction_house:
             self.strategy = SurplusAuctionStrategy(self.surplus_auction_house, self.prot.address, self.geb)
         elif self.debt_auction_house:
-            self.strategy = DebtAuctionStrategy(self.debt_auction_house)
+            self.strategy = DebtAuctionStrategy(self.debt_auction_house, self.geb)
         else:
             raise RuntimeError("Please specify auction type")
 
