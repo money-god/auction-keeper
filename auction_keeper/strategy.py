@@ -92,6 +92,7 @@ class FixedDiscountCollateralAuctionStrategy(Strategy):
                       sold_amount=bid.sold_amount,
                       raised_amount=bid.raised_amount,
                       bid_increase=None,
+                      bid_decrease=None,
                       high_bidder=None,
                       block_time=block_time(self.collateral_auction_house.web3),
                       bid_expiry=None,
@@ -161,6 +162,7 @@ class IncreasingDiscountCollateralAuctionStrategy(Strategy):
                       amount_to_sell=bid.amount_to_sell,  # Wad
                       amount_to_raise=bid.amount_to_raise,
                       bid_increase=None,
+                      bid_decrease=None,
                       high_bidder=None,
                       block_time=block_time(self.collateral_auction_house.web3),
                       bid_expiry=None,
@@ -237,6 +239,7 @@ class SurplusAuctionStrategy(Strategy):
                       sold_amount=None,
                       raised_amount=None,
                       bid_increase=self.bid_increase,
+                      bid_decrease=None,
                       high_bidder=bid.high_bidder,
                       block_time=block_time(self.surplus_auction_house.web3),
                       bid_expiry=bid.bid_expiry,
@@ -264,7 +267,7 @@ class DebtAuctionStrategy(Strategy):
         super().__init__(debt_auction_house)
 
         self.debt_auction_house = debt_auction_house
-        self.bid_increase = debt_auction_house.bid_decrease()
+        self.bid_decrease = debt_auction_house.bid_decrease()
         self.geb = geb
 
     def approve(self, gas_price: GasPrice):
@@ -292,23 +295,24 @@ class DebtAuctionStrategy(Strategy):
                       amount_to_raise=None,
                       sold_amount=None,
                       raised_amount=None,
-                      bid_increase=self.bid_increase,
+                      bid_increase=None,
+                      bid_decrease=self.bid_decrease,
                       high_bidder=bid.high_bidder,
                       block_time=block_time(self.debt_auction_house.web3),
                       bid_expiry=bid.bid_expiry,
                       auction_deadline=bid.auction_deadline,
                       price=Wad(bid.bid_amount * Rad(redemption_price) / Rad(bid.amount_to_sell)) if Wad(bid.bid_amount) != Wad(0) else None)
 
-
     def bid(self, id: int, price: Wad) -> Tuple[Optional[Wad], Optional[Transact], Optional[Rad]]:
         assert isinstance(id, int)
         assert isinstance(price, Wad)
 
         bid = self.debt_auction_house.bids(id)
-        our_amount = bid.bid_amount / Rad(price)
+        redemption_price = self.geb.oracle_relayer.redemption_price()
+        our_amount = bid.bid_amount * redemption_price / Rad(price)
 
-        if Ray(our_amount) * self.bid_increase <= Ray(bid.amount_to_sell) and our_amount < Rad(bid.amount_to_sell):
+        if Ray(our_amount) * self.bid_decrease <= Ray(bid.amount_to_sell) and our_amount < Rad(bid.amount_to_sell):
             return price, self.debt_auction_house.decrease_sold_amount(id, Wad(our_amount), bid.bid_amount), bid.bid_amount
         else:
-            self.logger.debug(f"our_amount {our_amount} would not exceed the bid increment for auction {id}")
+            self.logger.debug(f"our_amount {our_amount} at price {price} would not exceed the bid decrease {self.bid_decrease} for amount to sell {bid.amount_to_sell} for auction {id} and redemption price {redemption_price}")
             return None, None, None

@@ -40,7 +40,7 @@ for auction_input in sys.stdin:
     auction_state = json.loads(auction_input)
 
     # If we are already the high bidder, do nothing
-    if auction_state['high_bidder'] == os.environ['ACCOUNT_ADDRESS']:
+    if auction_state['high_bidder'] == os.environ['KEEPER_ADDRESS']:
         continue
 
     # Ensure our custom bid increase is at least the minimum allowed

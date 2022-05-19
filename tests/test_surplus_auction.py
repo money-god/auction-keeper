@@ -152,7 +152,7 @@ class TestAuctionKeeperSurplus(TransactionIgnoringTest):
         assert status.collateral_auction_house is None
         assert status.surplus_auction_house == self.surplus_auction_house.address
         assert status.debt_auction_house is None
-        assert status.bid_amount == Wad(self.surplus_auction_house.bids(auction_id).amount_to_sell / Rad.from_number(9))
+        assert status.bid_amount == Wad(self.surplus_auction_house.bids(auction_id).amount_to_sell * self.geb.oracle_relayer.redemption_price() / Rad.from_number(9))
         assert status.amount_to_sell == self.geb.accounting_engine.surplus_auction_amount_to_sell()
         assert status.amount_to_raise is None
         assert status.bid_increase == self.geb.surplus_auction_house.bid_increase()
@@ -201,7 +201,7 @@ class TestAuctionKeeperSurplus(TransactionIgnoringTest):
         assert status.block_time > 0
         assert status.auction_deadline > status.block_time
         assert status.bid_expiry > status.block_time
-        assert status.price == Wad(auction.amount_to_sell / Rad(auction.bid_amount))
+        assert status.price == Wad(auction.amount_to_sell * self.geb.oracle_relayer.redemption_price() / Rad(auction.bid_amount))
 
         # cleanup
         time_travel_by(self.web3, self.surplus_auction_house.bid_duration() + 1)
@@ -229,7 +229,7 @@ class TestAuctionKeeperSurplus(TransactionIgnoringTest):
         # then
         model.terminate.assert_not_called()
         auction = self.surplus_auction_house.bids(auction_id)
-        assert round(Wad(auction.amount_to_sell) / auction.bid_amount, 2) == round(Wad.from_number(9.0), 2)
+        assert round(Wad(auction.amount_to_sell * self.geb.oracle_relayer.redemption_price() ) / auction.bid_amount, 2) == round(Wad.from_number(9.0), 2)
 
         # cleanup
         time_travel_by(self.web3, self.surplus_auction_house.bid_duration() + 1)
@@ -328,7 +328,7 @@ class TestAuctionKeeperSurplus(TransactionIgnoringTest):
         wait_for_other_threads()
         # then
         auction = self.surplus_auction_house.bids(auction_id)
-        assert round(Wad(auction.amount_to_sell) / auction.bid_amount, 2) == round(Wad.from_number(10.0), 2)
+        assert round(Wad(auction.amount_to_sell * self.geb.oracle_relayer.redemption_price() ) / auction.bid_amount, 2) == round(Wad.from_number(10.0), 2)
 
         # cleanup
         time_travel_by(self.web3, self.surplus_auction_house.bid_duration() + 1)
@@ -391,7 +391,7 @@ class TestAuctionKeeperSurplus(TransactionIgnoringTest):
         self.keeper.check_for_bids()
         wait_for_other_threads()
         # then
-        assert self.surplus_auction_house.bids(auction_id).bid_amount == Wad(amount_to_sell / Rad(first_bid))
+        assert self.surplus_auction_house.bids(auction_id).bid_amount == Wad(amount_to_sell * self.geb.oracle_relayer.redemption_price()  / Rad(first_bid))
 
         # when
         second_bid = Wad.from_number(0.0000003)
@@ -400,7 +400,7 @@ class TestAuctionKeeperSurplus(TransactionIgnoringTest):
         self.keeper.check_for_bids()
         wait_for_other_threads()
         # then
-        assert self.surplus_auction_house.bids(auction_id).bid_amount == Wad(amount_to_sell / Rad(second_bid))
+        assert self.surplus_auction_house.bids(auction_id).bid_amount == Wad(amount_to_sell * self.geb.oracle_relayer.redemption_price() / Rad(second_bid))
 
         # cleanup
         time_travel_by(self.web3, self.surplus_auction_house.bid_duration() + 1)
@@ -426,7 +426,7 @@ class TestAuctionKeeperSurplus(TransactionIgnoringTest):
         self.keeper.check_for_bids()
         wait_for_other_threads()
         # then
-        assert self.surplus_auction_house.bids(auction_id).bid_amount == Wad(amount_to_sell) / Wad.from_number(10.0)
+        assert self.surplus_auction_house.bids(auction_id).bid_amount == Wad(amount_to_sell * self.geb.oracle_relayer.redemption_price()) / Wad.from_number(10.0)
         assert self.web3.eth.getBlock('latest', full_transactions=True).transactions[0].gasPrice == 15
 
         # cleanup
@@ -480,7 +480,7 @@ class TestAuctionKeeperSurplus(TransactionIgnoringTest):
         self.keeper.check_for_bids()
         wait_for_other_threads()
         # then
-        assert self.surplus_auction_house.bids(auction_id).bid_amount == Wad(amount_to_sell) / Wad.from_number(8.0)
+        assert self.surplus_auction_house.bids(auction_id).bid_amount == Wad(amount_to_sell * self.geb.oracle_relayer.redemption_price()) / Wad.from_number(8.0)
         assert self.web3.eth.getBlock('latest', full_transactions=True).transactions[0].gasPrice == 15
 
         # cleanup
@@ -500,7 +500,7 @@ class TestAuctionKeeperSurplus(TransactionIgnoringTest):
         self.keeper.check_for_bids()
         wait_for_other_threads()
         # then
-        assert self.surplus_auction_house.bids(auction_id).bid_amount == Wad(amount_to_sell) / Wad(price)
+        assert self.surplus_auction_house.bids(auction_id).bid_amount == Wad(amount_to_sell * self.geb.oracle_relayer.redemption_price() ) / Wad(price)
 
         # when
         tx_count = self.web3.eth.getTransactionCount(self.keeper_address.address)
@@ -528,7 +528,7 @@ class TestAuctionKeeperSurplus(TransactionIgnoringTest):
         # then
         auction = self.surplus_auction_house.bids(auction_id)
         assert auction.bid_amount > Wad(0)
-        assert round(Wad(auction.amount_to_sell) / auction.bid_amount, 2) == round(Wad.from_number(8.0), 2)
+        assert round(Wad(auction.amount_to_sell * self.geb.oracle_relayer.redemption_price() ) / auction.bid_amount, 2) == round(Wad.from_number(8.0), 2)
         system_coin_before = self.geb.safe_engine.coin_balance(self.keeper_address)
 
         # when
@@ -619,7 +619,7 @@ class TestAuctionKeeperSurplus(TransactionIgnoringTest):
         self.keeper.check_for_bids()
         wait_for_other_threads()
         # then
-        assert self.surplus_auction_house.bids(auction_id).bid_amount == Wad(amount_to_sell / Rad(second_bid))
+        assert self.surplus_auction_house.bids(auction_id).bid_amount == Wad(amount_to_sell * self.geb.oracle_relayer.redemption_price() / Rad(second_bid))
         assert self.web3.eth.getBlock('latest', full_transactions=True).transactions[0].gasPrice == \
                self.default_gas_price
 
@@ -632,7 +632,7 @@ class TestAuctionKeeperSurplus(TransactionIgnoringTest):
         self.keeper.check_for_bids()
         wait_for_other_threads()
         # then
-        assert self.surplus_auction_house.bids(auction_id).bid_amount == Wad(amount_to_sell / Rad(third_bid))
+        assert self.surplus_auction_house.bids(auction_id).bid_amount == Wad(amount_to_sell * self.geb.oracle_relayer.redemption_price() / Rad(third_bid))
         assert self.web3.eth.getBlock('latest', full_transactions=True).transactions[0].gasPrice == new_gas_price
 
         # cleanup

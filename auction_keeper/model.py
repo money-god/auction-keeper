@@ -61,6 +61,7 @@ class Status():
                  amount_to_sell: Wad,
                  amount_to_raise: Optional[Wad],
                  bid_increase: Optional[Wad],
+                 bid_decrease: Optional[Wad],
                  high_bidder: Optional[Address],
                  block_time: int,
                  bid_expiry: Optional[int],
@@ -79,6 +80,7 @@ class Status():
         assert isinstance(sold_amount, Wad) or (sold_amount is None)
         assert isinstance(raised_amount, Rad) or (raised_amount is None)
         assert isinstance(bid_increase, Wad) or bid_increase is None
+        assert isinstance(bid_decrease, Wad) or bid_decrease is None
         assert isinstance(high_bidder, Address) or high_bidder is None
         assert isinstance(block_time, int)
         assert isinstance(bid_expiry, int) or bid_expiry is None
@@ -95,6 +97,7 @@ class Status():
         self.sold_amount = sold_amount
         self.raised_amount = raised_amount
         self.bid_increase = bid_increase
+        self.bid_decrease = bid_decrease
         self.high_bidder = high_bidder
         self.block_time = block_time
         self.bid_expiry = bid_expiry
@@ -117,6 +120,7 @@ class Status():
                self.amount_to_sell == other.amount_to_sell and \
                self.amount_to_raise == other.amount_to_raise and \
                self.bid_increase == other.bid_increase and \
+               self.bid_decrease == other.bid_decrease and \
                self.high_bidder == other.high_bidder and \
                self.block_time == other.block_time and \
                self.bid_expiry == other.bid_expiry and \
@@ -132,6 +136,7 @@ class Status():
                      self.amount_to_sell,
                      self.amount_to_raise,
                      self.bid_increase,
+                     self.bid_decrease,
                      self.high_bidder,
                      self.block_time,
                      self.bid_expiry,
@@ -150,6 +155,9 @@ class Status():
 
         if self.bid_increase:
             record['bid_increase'] = str(self.bid_increase)
+
+        if self.bid_decrease:
+            record['bid_decrease'] = str(self.bid_decrease)
 
         if self.high_bidder:
             record['high_bidder'] = str(self.high_bidder)

@@ -173,12 +173,12 @@ class TestAuctionKeeperDebtAuction(TransactionIgnoringTest):
         assert status.bid_amount > Rad.from_number(0)
         assert status.amount_to_sell == self.geb.accounting_engine.initial_debt_auction_minted_tokens()
         assert status.amount_to_raise is None
-        assert status.bid_increase > Wad.from_number(1)
+        assert status.bid_decrease > Wad.from_number(1)
         assert status.high_bidder == self.geb.accounting_engine.address
         assert status.block_time > 0
         assert status.auction_deadline < status.block_time + self.debt_auction_house.total_auction_length() + 1
         assert status.bid_expiry == 0
-        assert status.price == Wad(status.bid_amount / Rad(status.amount_to_sell))
+        assert status.price == Wad(status.bid_amount * self.geb.oracle_relayer.redemption_price() / Rad(status.amount_to_sell))
 
     def test_should_provide_model_with_updated_info_after_our_own_bid(self):
         # given
@@ -192,7 +192,7 @@ class TestAuctionKeeperDebtAuction(TransactionIgnoringTest):
         assert model.send_status.call_count == 1
 
         # when
-        price = Wad.from_number(50.0)
+        price = Wad.from_number(250.0)
         simulate_model_output(model=model, price=price)
         # and
         self.keeper.check_all_auctions()
@@ -200,20 +200,22 @@ class TestAuctionKeeperDebtAuction(TransactionIgnoringTest):
         wait_for_other_threads()
         # and
         self.keeper.check_all_auctions()
+        self.keeper.check_for_bids()
         wait_for_other_threads()
         # then
         assert model.send_status.call_count > 1
         last_bid = self.debt_auction_house.bids(auction_id)
         # and
         status = model.send_status.call_args[0][0]
+
         assert status.id == auction_id
         assert status.collateral_auction_house is None
         assert status.surplus_auction_house is None
         assert status.debt_auction_house == self.debt_auction_house.address
         assert status.bid_amount == last_bid.bid_amount
-        assert status.amount_to_sell == Wad(last_bid.bid_amount / Rad(price))
+        assert status.amount_to_sell == Wad(last_bid.bid_amount * self.geb.oracle_relayer.redemption_price() / Rad(price))
         assert status.amount_to_raise is None
-        assert status.bid_increase > Wad.from_number(1)
+        assert status.bid_decrease > Wad.from_number(1)
         assert status.high_bidder == self.keeper_address
         assert status.block_time > 0
         assert status.auction_deadline > status.block_time
@@ -251,12 +253,12 @@ class TestAuctionKeeperDebtAuction(TransactionIgnoringTest):
         assert status.bid_amount == self.debt_auction_bid_size
         assert status.amount_to_sell == amount_to_sell
         assert status.amount_to_raise is None
-        assert status.bid_increase > Wad.from_number(1)
+        assert status.bid_decrease > Wad.from_number(1)
         assert status.high_bidder == self.other_address
         assert status.block_time > 0
         assert status.auction_deadline > status.block_time
         assert status.bid_expiry > status.block_time
-        assert status.price == Wad(self.debt_auction_bid_size / Rad(amount_to_sell))
+        assert status.price == Wad(self.debt_auction_bid_size * self.geb.oracle_relayer.redemption_price() / Rad(amount_to_sell))
 
         # cleanup
         time_travel_by(self.web3, self.debt_auction_house.bid_duration() + 1)
@@ -284,7 +286,7 @@ class TestAuctionKeeperDebtAuction(TransactionIgnoringTest):
         # then
         model.terminate.assert_not_called()
         auction = self.debt_auction_house.bids(auction_id)
-        assert round(auction.bid_amount / Rad(auction.amount_to_sell), 2) == round(Rad.from_number(555.0), 2)
+        assert round(auction.bid_amount * self.geb.oracle_relayer.redemption_price() / Rad(auction.amount_to_sell), 2) == round(Rad.from_number(555.0), 2)
 
         # cleanup
         time_travel_by(self.web3, self.debt_auction_house.bid_duration() + 1)
@@ -384,7 +386,7 @@ class TestAuctionKeeperDebtAuction(TransactionIgnoringTest):
         wait_for_other_threads()
         # then
         auction = self.debt_auction_house.bids(auction_id)
-        assert round(auction.bid_amount / Rad(auction.amount_to_sell), 2) == round(Rad.from_number(575.0), 2)
+        assert round(auction.bid_amount * self.geb.oracle_relayer.redemption_price() / Rad(auction.amount_to_sell), 2) == round(Rad.from_number(575.0), 2)
         prot_after = self.geb.prot.balance_of(self.keeper_address)
         assert prot_before == prot_after
 
@@ -410,7 +412,7 @@ class TestAuctionKeeperDebtAuction(TransactionIgnoringTest):
         # then
         auction = self.debt_auction_house.bids(auction_id)
         assert auction.amount_to_sell != amount_to_sell
-        assert round(auction.bid_amount / Rad(auction.amount_to_sell), 2) == round(Rad.from_number(825.0), 2)
+        assert round(auction.bid_amount * self.geb.oracle_relayer.redemption_price() / Rad(auction.amount_to_sell), 2) == round(Rad.from_number(825.0), 2)
         prot_after = self.geb.prot.balance_of(self.keeper_address)
         assert prot_before == prot_after
 
@@ -535,7 +537,7 @@ class TestAuctionKeeperDebtAuction(TransactionIgnoringTest):
         self.keeper.check_for_bids()
         wait_for_other_threads()
         # then
-        assert self.debt_auction_house.bids(auction_id).amount_to_sell == Wad(self.debt_auction_bid_size / Rad.from_number(1400.0))
+        assert self.debt_auction_house.bids(auction_id).amount_to_sell == Wad(self.debt_auction_bid_size * self.geb.oracle_relayer.redemption_price() / Rad.from_number(1400.0))
 
         # when
         tx_count = self.web3.eth.getTransactionCount(self.keeper_address.address)
@@ -717,7 +719,7 @@ class MockDebtAuctionHouse:
 class TestDebtAuctionStrategy:
     def setup_class(self):
         self.geb = get_geb(get_web3())
-        self.strategy = DebtAuctionStrategy(self.geb.debt_auction_house)
+        self.strategy = DebtAuctionStrategy(self.geb.debt_auction_house, self.geb)
         self.mock_debt_auction_house = MockDebtAuctionHouse()
 
     def test_price(self, mocker):
@@ -727,7 +729,7 @@ class TestDebtAuctionStrategy:
         (price, tx, bid_amount) = self.strategy.bid(1, model_price)
         assert price == model_price
         assert bid_amount == MockDebtAuctionHouse.bid_amount
-        amount_to_sell1 = MockDebtAuctionHouse.debt_auction_bid_size / model_price
+        amount_to_sell1 = MockDebtAuctionHouse.debt_auction_bid_size * self.geb.oracle_relayer.redemption_price() / model_price
         DebtAuctionHouse.decrease_sold_amount.assert_called_once_with(1, amount_to_sell1, MockDebtAuctionHouse.bid_amount)
 
         # When bid price increases, amount_to_sell should decrease
@@ -735,4 +737,4 @@ class TestDebtAuctionStrategy:
         (price, tx, bid) = self.strategy.bid(1, model_price)
         amount_to_sell2 = DebtAuctionHouse.decrease_sold_amount.call_args[0][1]
         assert amount_to_sell2 < amount_to_sell1
-        assert amount_to_sell2 == MockDebtAuctionHouse.debt_auction_bid_size / model_price
+        assert amount_to_sell2 == MockDebtAuctionHouse.debt_auction_bid_size * self.geb.oracle_relayer.redemption_price() / model_price
