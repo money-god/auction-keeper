@@ -163,6 +163,7 @@ class TestAuctionKeeperDebtAuction(TransactionIgnoringTest):
         model_factory.create_model.assert_called_once_with(Parameters(collateral_auction_house=None,
                                                                       surplus_auction_house=None,
                                                                       debt_auction_house=self.debt_auction_house.address,
+                                                                      staked_token_auction_house=None,
                                                                       id=auction_id))
         # and
         status = model.send_status.call_args[0][0]

@@ -26,15 +26,17 @@ from pyflex.numeric import Wad, Ray, Rad
 
 class Parameters:
     def __init__(self, collateral_auction_house: Optional[Address], surplus_auction_house: Optional[Address],
-                 debt_auction_house: Optional[Address], id: int):
+                 debt_auction_house: Optional[Address], staked_token_auction_house: Optional[Address], id: int):
         assert isinstance(collateral_auction_house, Address) or (collateral_auction_house is None)
         assert isinstance(surplus_auction_house, Address) or (surplus_auction_house is None)
         assert isinstance(debt_auction_house, Address) or (debt_auction_house is None)
+        assert isinstance(staked_token_auction_house, Address) or (staked_token_auction_house is None)
         assert isinstance(id, int)
 
         self.collateral_auction_house = collateral_auction_house
         self.surplus_auction_house = surplus_auction_house
         self.debt_auction_house = debt_auction_house
+        self.staked_token_auction_house = staked_token_auction_house
         self.id = id
 
     def __eq__(self, other):
@@ -43,10 +45,12 @@ class Parameters:
         return self.collateral_auction_house == other.collateral_auction_house and \
                self.surplus_auction_house == other.surplus_auction_house and \
                self.debt_auction_house == other.debt_auction_house and \
+               self.staked_token_auction_house == other.staked_token_auction_house and \
                self.id == other.id
 
     def __hash__(self):
-        return hash((self.collateral_auction_house, self.surplus_auction_house, self.debt_auction_house, self.id))
+        return hash((self.collateral_auction_house, self.surplus_auction_house,
+                     self.debt_auction_house, self.staked_token_auction_house, self.id))
 
     def __repr__(self):
         return pformat(vars(self))
@@ -57,6 +61,7 @@ class Status():
                  collateral_auction_house: Optional[Address],
                  surplus_auction_house: Optional[Address],
                  debt_auction_house: Optional[Address],
+                 staked_token_auction_house: Optional[Address],
                  bid_amount: Wad,
                  amount_to_sell: Wad,
                  amount_to_raise: Optional[Wad],
@@ -73,6 +78,7 @@ class Status():
         assert isinstance(collateral_auction_house, Address) or (collateral_auction_house is None)
         assert isinstance(surplus_auction_house, Address) or (surplus_auction_house is None)
         assert isinstance(debt_auction_house, Address) or (debt_auction_house is None)
+        assert isinstance(staked_token_auction_house, Address) or (staked_token_auction_house is None)
         # Numeric type of bid and amount_to_sell depends on auction type; system coin values are bid in Rad, collateral and prot in Wad.
         assert isinstance(bid_amount, Wad) or isinstance(bid_amount, Rad) or bid_amount is None
         assert isinstance(amount_to_sell, Wad) or isinstance(amount_to_sell, Rad)
@@ -91,6 +97,7 @@ class Status():
         self.collateral_auction_house = collateral_auction_house
         self.surplus_auction_house = surplus_auction_house
         self.debt_auction_house = debt_auction_house
+        self.staked_token_auction_house = staked_token_auction_house
         self.bid_amount = bid_amount
         self.amount_to_sell = amount_to_sell
         self.amount_to_raise = amount_to_raise
@@ -116,6 +123,7 @@ class Status():
                self.collateral_auction_house == other.collateral_auction_house and \
                self.surplus_auction_house == other.surplus_auction_house and \
                self.debt_auction_house == other.debt_auction_house and \
+               self.staked_token_auction_house == other.staked_token_auction_house and \
                self.bid == other.bid and \
                self.amount_to_sell == other.amount_to_sell and \
                self.amount_to_raise == other.amount_to_raise and \
@@ -132,6 +140,7 @@ class Status():
                      self.collateral_auction_house,
                      self.surplus_auction_house,
                      self.debt_auction_house,
+                     self.staked_token_auction_house,
                      self.bid,
                      self.amount_to_sell,
                      self.amount_to_raise,
@@ -177,6 +186,9 @@ class Status():
         if self.debt_auction_house:
             record['debt_auction_house'] = str(self.debt_auction_house)
 
+        if self.staked_token_auction_house:
+            record['staked_token_auction_house'] = str(self.staked_token_auction_house)
+
         return record
 
 class Stance:
@@ -212,6 +224,7 @@ class Model:
         self._arguments += f" --collateral_auction_house {parameters.collateral_auction_house}" if parameters.collateral_auction_house is not None else ""
         self._arguments += f" --surplus_auction_house {parameters.surplus_auction_house}" if parameters.surplus_auction_house is not None else ""
         self._arguments += f" --debt_auction_house {parameters.debt_auction_house}" if parameters.debt_auction_house is not None else ""
+        self._arguments += f" --staked_token_auction_house {parameters.staked_token_auction_house}" if parameters.staked_token_auction_house is not None else ""
         self._last_output = None
 
         self.logger.info(f"Instantiated model using process '{self._command} {self._arguments}'")

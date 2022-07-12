@@ -32,6 +32,7 @@ Examples:
 * [Collateral](collateral-auction-keeper/running-in-docker.md)
 * [Surplus](surplus-auction-keeper/running-in-docker.md)
 * [Debt](debt-auction-keeper/running-in-docker.md)
+* [Debt Staked](debt-staked-auction-keeper/running-in-docker.md)
 
 ### Running on a host
 
@@ -42,7 +43,6 @@ Install `auction-keeper` dependencies with:
 ```text
 git clone https://github.com/reflexer-finance/auction-keeper.git
 cd auction-keeper
-git checkout tags/prai-demo
 git submodule update --init --recursive
 pip3 install -r requirements.txt
 ```
@@ -54,6 +54,7 @@ Auction specific examples:
 * [Collateral](collateral-auction-keeper/running-on-a-host.md)
 * [Surplus](surplus-auction-keeper/running-on-a-host.md)
 * [Debt](debt-auction-keeper/running-on-a-host.md)
+* [Debt Staked](debt-staked-auction-keeper/running-on-a-host.md)
 
 ## Configuration Reference
 
@@ -61,7 +62,7 @@ Run `bin/auction-keeper -h` to see an up-to-date list of arguments and usage inf
 
 ### General
 
-`--type collateral|surplus|debt` A keeper can only participate in one type of auction
+`--type collateral|surplus|debt|debt_staked` A keeper can only participate in one type of auction
 
 `--collateral-type NAME` If `--type=collateral` is passed, the `collateral_type` must also be provided. A keeper can only bid on a single collateral type auction at a time. **NOTE**: Currently, only the `ETH-A` collateral type is used.
 
@@ -137,7 +138,7 @@ To start collateral auctions, the keeper needs a list of SAFEs and the collatera
 
 `--graph-block-threshold NUMBER_OF_BLOCKS` When the keeper fetches SAFE data to find critical safes, use the `--graph-endpoints` when the keeper's last processed block is older than `NUMBER_OF_BLOCKS`. The graph will be faster than a node when fetching historical data, but recent graph blocks might be slightly delayed compared to an ethereum node. This allows the keeper to to fetch historical data from the graph, but use the node for all newer blocks. Defaults to `20`
 
-The following are the most recent Graph node endpoints for RAI:`--graph-endpoints https://subgraph.reflexer.finance/subgraphs/name/reflexer-labs/prai,https://api.thegraph.com/subgraphs/name/reflexer-labs/prai-mainnet`
+The following are the most recent Graph node endpoints for RAI:`--graph-endpoints https://thegraph.com/explorer/subgraph/reflexer-labs/rai-mainnet,https://subgraph.reflexer.finance/subgraphs/name/reflexer-labs/rai/graphql`
 
 #### Auctions
 

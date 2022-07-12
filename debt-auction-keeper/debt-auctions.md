@@ -10,7 +10,7 @@ Below you will see the debt auction-keeper start and bid on a debt auction.
 
 ### Pop debt from queue
 
-If debt from collateral auctions still exists after `AccountingEngine.pop_debt_delay()`, the surplus _auction-keeper_ will call `popDebtFromQueue()`
+If debt from collateral auctions still exists after `AccountingEngine.pop_debt_delay()`, the debt _auction-keeper_ will call `popDebtFromQueue()`
 
 ```text
 2021-01-20 04:16:22,462 INFO     Sent transaction AccountingEngine('0x73EC2a627655134886477D10A41275f54556E0e2').popDebtFromQueue(1611116032) with nonce=1519, gas=159390, gas_price=10000000000 (tx_hash=0x7266984842ce52d8df52a775d889bb7040e0bac742d51f369e0c23e3e89dd560)

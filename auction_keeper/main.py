@@ -35,14 +35,14 @@ from pyflex.keys import register_keys
 from pyflex.lifecycle import Lifecycle
 from pyflex.model import Token
 from pyflex.numeric import Wad, Ray, Rad
-from pyflex.auctions import IncreasingDiscountCollateralAuctionHouse, FixedDiscountCollateralAuctionHouse
+from pyflex.auctions import IncreasingDiscountCollateralAuctionHouse, FixedDiscountCollateralAuctionHouse, StakedTokenAuctionHouse
 from pyflex import Transact
 #Transact.gas_estimate_for_bad_txs = 1000000
 
 from auction_keeper.gas import DynamicGasPrice, UpdatableGasPrice
 from auction_keeper.logic import Auction, Auctions, Reservoir
 from auction_keeper.model import ModelFactory, Stance
-from auction_keeper.strategy import SurplusAuctionStrategy, DebtAuctionStrategy
+from auction_keeper.strategy import SurplusAuctionStrategy, DebtAuctionStrategy, StakedTokenAuctionStrategy
 from auction_keeper.strategy import IncreasingDiscountCollateralAuctionStrategy, FixedDiscountCollateralAuctionStrategy
 from auction_keeper.safe_history import SAFEHistory
 
@@ -65,7 +65,7 @@ class AuctionKeeper:
                             help="Ethereum account from which to send transactions")
         parser.add_argument("--eth-key", type=str, nargs='*',
                             help="Ethereum private key(s) to use (e.g. 'key_file=aaa.json,pass_file=aaa.pass')")
-        parser.add_argument('--type', type=str, choices=['collateral', 'surplus', 'debt'], default='collateral',
+        parser.add_argument('--type', type=str, choices=['collateral', 'surplus', 'debt', 'debt_staked'], default='collateral',
                             help="Auction type in which to participate")
         parser.add_argument('--system', type=str, default='rai',
                             help="Name of the system. Currently only 'rai' is supported")
@@ -172,6 +172,7 @@ class AuctionKeeper:
         self.from_block = self.arguments.from_block if self.arguments.from_block else self.geb.starting_block_number
         self.safe_engine = self.geb.safe_engine
         self.liquidation_engine = self.geb.liquidation_engine
+        self.geb_staking = self.geb.geb_staking
         self.accounting_engine = self.geb.accounting_engine
         self.prot = self.geb.prot
         self.system_coin_join = self.geb.system_coin_adapter
@@ -212,6 +213,7 @@ class AuctionKeeper:
         self.collateral_auction_house = self.collateral.collateral_auction_house if self.arguments.type == 'collateral' else None
         self.surplus_auction_house = self.geb.surplus_auction_house if self.arguments.type == 'surplus' else None
         self.debt_auction_house = self.geb.debt_auction_house if self.arguments.type == 'debt' else None
+        self.staked_token_auction_house = self.geb.staked_token_auction_house if self.arguments.type == 'debt_staked' else None
         self.safe_history = None
         if self.collateral_auction_house:
             self.min_collateral_lot = Wad.from_number(self.arguments.min_collateral_lot)
@@ -227,6 +229,8 @@ class AuctionKeeper:
             self.strategy = SurplusAuctionStrategy(self.surplus_auction_house, self.prot.address, self.geb)
         elif self.debt_auction_house:
             self.strategy = DebtAuctionStrategy(self.debt_auction_house, self.geb)
+        elif self.staked_token_auction_house:
+            self.strategy = StakedTokenAuctionStrategy(self.staked_token_auction_house, self.geb)
         else:
             raise RuntimeError("Please specify auction type")
 
@@ -241,6 +245,7 @@ class AuctionKeeper:
         self.auctions = Auctions(collateral_auction_house=self.collateral_auction_house.address if self.collateral_auction_house else None,
                                  surplus_auction_house=self.surplus_auction_house.address if self.surplus_auction_house else None,
                                  debt_auction_house=self.debt_auction_house.address if self.debt_auction_house else None,
+                                 staked_token_auction_house=self.staked_token_auction_house.address if self.staked_token_auction_house else None,
                                  model_factory=ModelFactory(model_command))
         self.auctions_lock = threading.Lock()
         # Since we don't want periodically-polled bidding threads to back up, use a flag instead of a lock.
@@ -302,6 +307,8 @@ class AuctionKeeper:
                 lifecycle.on_block(functools.partial(seq_func, check_func=self.check_surplus))
             elif self.debt_auction_house and self.accounting_engine:
                 lifecycle.on_block(functools.partial(seq_func, check_func=self.check_debt))
+            elif self.staked_token_auction_house and self.accounting_engine:
+                lifecycle.on_block(functools.partial(seq_func, check_func=self.check_debt_staked))
             else:  # unusual corner case
                 lifecycle.on_block(self.check_all_auctions)
 
@@ -561,6 +568,81 @@ class AuctionKeeper:
             if debt_auction_bid_size <= unqueued_unauctioned_debt and total_surplus == Rad(0):
                 self.accounting_engine.auction_debt().transact(gas_price=self.gas_price)
 
+    def check_debt_staked(self):
+        # Check if Accounting Engine has a surplus of bad debt compared to system coin
+        total_surplus = self.safe_engine.coin_balance(self.accounting_engine.address)
+        total_debt = self.safe_engine.debt_balance(self.accounting_engine.address)
+
+        # Check if Accounting Engine has bad debt in excess
+        excess_debt = total_surplus < total_debt
+        if not excess_debt:
+            return
+
+
+
+        unqueued_unauctioned_debt = self.accounting_engine.unqueued_unauctioned_debt()
+        debt_queue = self.accounting_engine.total_queued_debt()
+        #debt_auction_bid_size = self.geb_staking.system_coins_to_request()
+        debt_auction_bid_size = self.accounting_engine.debt_auction_bid_size()
+        pop_debt_delay = self.accounting_engine.pop_debt_delay()
+
+        # Check if Accounting Engine has enough bad debt to start an auction and that we have enough system_coin balance
+        if unqueued_unauctioned_debt + debt_queue >= debt_auction_bid_size:
+        #if self.geb_staking.can_auction_tokens():
+            # We need to bring accounting engine system coin balance to 0 and unqueued_unauctioned_debt to at least debt_auction_bid_size
+
+            available_system_coin = self.geb.system_coin.balance_of(self.our_address) + Wad(self.safe_engine.coin_balance(self.our_address))
+            if self.arguments.bid_on_auctions and available_system_coin == Wad(0):
+                self.logger.warning("Skipping opportunity to pop_debt_from_queue and settle debt because there is no system coin to bid")
+                return
+
+            # first use cancel_auctioned_debt_with_surplus() as it settles bad debt already in auctions and doesn't decrease unqueued_unauctioned_debt
+            total_on_auction_debt = self.accounting_engine.total_on_auction_debt()
+            if total_surplus > Rad(0):
+                self.reconcile_debt(total_surplus, total_on_auction_debt, unqueued_unauctioned_debt)
+
+            # Convert enough debt in unqueued_unauctioned_debt to have unqueued_unauctioned_debt >= debt_auction_bid_size + total_surplus
+            if unqueued_unauctioned_debt < (debt_auction_bid_size + total_surplus) and self.liquidation_engine is not None:
+                past_blocks = self.web3.eth.blockNumber - self.from_block
+                for liquidation_event in self.liquidation_engine.past_liquidations(past_blocks):  # TODO: cache ?
+                    block_time = liquidation_event.block_time(self.web3)
+                    now = self.web3.eth.getBlock('latest')['timestamp']
+                    debt_queue = self.accounting_engine.debt_queue_of(block_time)
+                    # If the liquidation hasn't already been popped from queue and has aged past the `pop_debt_delay`
+                    if debt_queue > Rad(0) and block_time + pop_debt_delay <= now:
+                        self.accounting_engine.pop_debt_from_queue(block_time).transact(gas_price=self.gas_price)
+
+                        # pop debt from queue until unqueued_unauctioned_debt is above debt_auction_bid_size + total_surplus
+                        total_surplus = self.safe_engine.coin_balance(self.accounting_engine.address)
+                        if self.accounting_engine.unqueued_unauctioned_debt() - total_surplus >= debt_auction_bid_size:
+                            break
+
+            # Reduce on-auction debt and reconcile remaining total_surplus
+            total_surplus = self.safe_engine.coin_balance(self.accounting_engine.address)
+            if total_surplus > Rad(0):
+                total_on_auction_debt = self.accounting_engine.total_on_auction_debt()
+                unqueued_unauctioned_debt = self.accounting_engine.unqueued_unauctioned_debt()
+                self.reconcile_debt(total_surplus, total_on_auction_debt, unqueued_unauctioned_debt)
+                total_surplus = self.safe_engine.coin_balance(self.accounting_engine.address)
+
+            unqueued_unauctioned_debt = self.accounting_engine.unqueued_unauctioned_debt()
+            if debt_auction_bid_size <= unqueued_unauctioned_debt and total_surplus == Rad(0):
+                active_auctions = self.geb.staked_token_auction_house.active_staked_token_auctions()
+                max_concurrent_auctions = self.geb.geb_staking.max_concurrent_auctions()
+
+                if active_auctions >= max_concurrent_auctions:
+                    self.logger.info(f"Can't start staked_token auction as there are already {active_auctions} active auctions")
+                    return
+
+                if self.geb_staking.can_auction_tokens():
+                    self.geb_staking.auction_ancestor_tokens().transact(gas_price=self.gas_price)
+                else:
+                    can_print = self.geb_staking.can_print_protocol_tokens()
+                    self.logger.warning(f"geb_staking.can_auction_tokens() returned False. Not enough ancestor tokens available to auction?")
+                    if can_print:
+                        self.logger.warning(f"geb_staking will allow regular debt auctions. Restart keeper with '--type debt'")
+
+
     def check_all_auctions(self):
         started = datetime.now()
         ignored_auctions = []
@@ -610,7 +692,7 @@ class AuctionKeeper:
         # Initialize the reservoir with system coin/prot balance for this round of bid submissions.
         # This isn't a perfect solution as it omits the cost of bids submitted from the last round.
         # Recreating the reservoir preserves the stateless design of this keeper.
-        if self.collateral_auction_house or self.debt_auction_house:
+        if self.collateral_auction_house or self.debt_auction_house or self.staked_token_auction_house:
             reservoir = Reservoir(self.safe_engine.coin_balance(self.our_address))
         elif self.surplus_auction_house:
             reservoir = Reservoir(Rad(self.prot.balance_of(self.our_address)))
@@ -648,14 +730,18 @@ class AuctionKeeper:
 
         # Read auction information from the chain
         input = self.strategy.get_input(id)
-        logging.debug(f"Input for auction {id}: {input}")
+        logging.info(f"Input for auction {id}: {input.to_dict()}")
         auction_deleted = (input.auction_deadline == 0)
-        logging.debug(f"Auction {id} deleted: {auction_deleted}")
+        logging.info(f"Auction {id} deleted: {auction_deleted}")
         if isinstance(self.collateral_auction_house, FixedDiscountCollateralAuctionHouse) or \
                 isinstance(self.collateral_auction_house, IncreasingDiscountCollateralAuctionHouse):
             auction_finished = False
             if input.amount_to_sell == Wad(0):
                 auction_deleted = True
+        elif isinstance(self.staked_token_auction_house, StakedTokenAuctionHouse):
+            if input.auction_deadline == 0:
+                auction_deleted = True
+            auction_finished = (input.bid_expiry < input.block_time and input.bid_expiry != 0) or (input.auction_deadline < input.block_time)
         else:
             auction_finished = (input.bid_expiry < input.block_time and input.bid_expiry != 0) or (input.auction_deadline < input.block_time)
 
@@ -844,7 +930,7 @@ class AuctionKeeper:
         assert isinstance(cost, Rad)
 
         # If this is an auction where we bid with system coin...
-        if self.collateral_auction_house or self.debt_auction_house:
+        if self.collateral_auction_house or self.debt_auction_house or self.staked_token_auction_house:
             if not reservoir.check_bid_cost(id, cost):
                 if not already_rebalanced:
                     # Try to synchronously join system coin the SAFE Engine
@@ -884,7 +970,10 @@ class AuctionKeeper:
         system_coin = self.system_coin_join.system_coin()
         token_balance = system_coin.balance_of(self.our_address)  # Wad
         # Prevent spending gas on small rebalances
-        debt_floor = Wad(self.geb.safe_engine.collateral_type(self.collateral_type.name).debt_floor) if self.collateral_type else Wad.from_number(20)
+        if self.collateral_type:
+            debt_floor = Wad(self.geb.safe_engine.collateral_type(self.collateral_type.name).debt_floor)
+        else:
+            debt_floor = Wad.from_number(20)
 
         system_coin_to_join = Wad(0)
         system_coin_to_exit = Wad(0)

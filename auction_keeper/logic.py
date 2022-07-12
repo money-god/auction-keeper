@@ -94,17 +94,20 @@ class Auctions:
     logger = logging.getLogger()
 
     def __init__(self, collateral_auction_house: Optional[Address], surplus_auction_house: Optional[Address],
-                 debt_auction_house: Optional[Address], model_factory: ModelFactory):
+                 debt_auction_house: Optional[Address], staked_token_auction_house: Optional[Address], model_factory: ModelFactory):
         assert isinstance(collateral_auction_house, Address) or (collateral_auction_house is None)
         assert isinstance(surplus_auction_house, Address) or (surplus_auction_house is None)
         assert isinstance(debt_auction_house, Address) or (debt_auction_house is None)
-        assert isinstance(collateral_auction_house, Address) or isinstance(surplus_auction_house, Address) or isinstance(debt_auction_house, Address)
+        assert isinstance(staked_token_auction_house, Address) or (staked_token_auction_house is None)
+        assert isinstance(collateral_auction_house, Address) or isinstance(surplus_auction_house, Address) \
+                or isinstance(debt_auction_house, Address) or isinstance(staked_token_auction_house, Address)
         assert isinstance(model_factory, ModelFactory)
 
         self.auctions = {}
         self.collateral_auction_house = collateral_auction_house
         self.surplus_auction_house = surplus_auction_house
         self.debt_auction_house = debt_auction_house
+        self.staked_token_auction_house = staked_token_auction_house
         self.model_factory = model_factory
 
     # TODO by passing `bid_amount` and `amount_to_sell` to this method it can actually check if the auction under this id hasn't changed,
@@ -121,6 +124,7 @@ class Auctions:
             model_parameters = Parameters(collateral_auction_house=self.collateral_auction_house,
                                           surplus_auction_house=self.surplus_auction_house,
                                           debt_auction_house=self.debt_auction_house,
+                                          staked_token_auction_house=self.staked_token_auction_house,
                                           id=id)
 
             # Start the model
