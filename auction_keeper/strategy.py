@@ -160,6 +160,7 @@ class IncreasingDiscountCollateralAuctionStrategy(Strategy):
                       collateral_auction_house=self.collateral_auction_house.address,
                       surplus_auction_house=None,
                       debt_auction_house=None,
+                      staked_token_auction_house=None,
                       bid_amount=None,
                       amount_to_sell=bid.amount_to_sell,  # Wad
                       amount_to_raise=bid.amount_to_raise,

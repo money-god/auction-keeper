@@ -67,8 +67,8 @@ class AuctionKeeper:
                             help="Ethereum private key(s) to use (e.g. 'key_file=aaa.json,pass_file=aaa.pass')")
         parser.add_argument('--type', type=str, choices=['collateral', 'surplus', 'debt', 'debt_staked'], default='collateral',
                             help="Auction type in which to participate")
-        parser.add_argument('--system', type=str, default='rai',
-                            help="Name of the system. Currently only 'rai' is supported")
+        parser.add_argument('--system', type=str, default='tai',
+                            help="Name of the system. Currently only 'tai' is supported")
         parser.add_argument('--collateral-type', type=str, default='ETH-A',
                             help="Name of the collateral type for a collateral keeper (e.g. 'ETH-B', 'ZRX-A'); ")
         parser.add_argument('--bid-only', dest='create_auctions', action='store_false',
