@@ -141,7 +141,6 @@ class SAFEHistory:
             return result['modifySAFECollateralizations']
 
         page_num = 0
-        self.logger.info(f'{page_size=}, {page_num=}')
         page = fetch_page(from_block, to_block, page_size, page_num * page_size)
         all_pages = []
         while page:
