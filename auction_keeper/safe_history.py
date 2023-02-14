@@ -77,7 +77,7 @@ class SAFEHistory:
                                                               to_block=to_block, collateral_type=self.collateral_type)
                     fetched_graph = True
                     break
-                except:
+                except Exception as e:
                     self.logger.warn(f"Failed to get safe mods from graph_endpoint {self.graph_endpoints[self.graph_endpoint_idx]}")
                     # Try another graph endpoint
                     self.graph_endpoint_idx += 1
@@ -115,13 +115,13 @@ class SAFEHistory:
     @retry(exceptions=Exception, tries=10, delay=0, max_delay=None, backoff=1, jitter=0)
     def fetch_safe_mods(self, graph_endpoint, from_block, to_block, page_size=1000):
 
-        self.logger.info(f"Fetching safe modes from {graph_endpoint}")
+        self.logger.info(f"Fetching safe mods from {graph_endpoint}")
         transport = AIOHTTPTransport(url=graph_endpoint)
 
         client = Client(transport=transport, fetch_schema_from_transport=True)
 
         def fetch_page(from_block, to_block, first, skip):
-            query = gql(
+            query_string = \
             f"""
             query{{
                 modifySAFECollateralizations(first: {first}, skip: {skip},
@@ -135,8 +135,9 @@ class SAFEHistory:
                 }}
             }}
             """
-            )   
+            query = gql(query_string)
             result = client.execute(query)
+
             return result['modifySAFECollateralizations']
 
         page_num = 0
@@ -163,6 +164,5 @@ class SAFEHistory:
         assert isinstance(collateral_type, CollateralType) or collateral_type is None
 
         results = self.fetch_safe_mods(endpoint, from_block, to_block)
-
 
         return [Mod(Address(safe['safeHandler'])) for safe in results if safe['collateralType']['id'] == collateral_type.name]

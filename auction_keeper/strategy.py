@@ -121,7 +121,7 @@ class FixedDiscountCollateralAuctionStrategy(Strategy):
         approximate_collateral, our_adjusted_bid = self.collateral_auction_house.get_approximate_collateral_bought(id, our_bid)
 
         if approximate_collateral == Wad(0):
-            self.logger.info(f"Approximate collateral bought for auction {id} would be Wad(0). Not bidding")
+            self.logger.info(f"Using {our_bid=}, approximate collateral bought for auction {id} would be Wad(0). Not bidding")
             return None, None, None
         our_approximate_price = our_adjusted_bid/approximate_collateral
 
@@ -160,6 +160,7 @@ class IncreasingDiscountCollateralAuctionStrategy(Strategy):
                       collateral_auction_house=self.collateral_auction_house.address,
                       surplus_auction_house=None,
                       debt_auction_house=None,
+                      staked_token_auction_house=None,
                       bid_amount=None,
                       amount_to_sell=bid.amount_to_sell,  # Wad
                       amount_to_raise=bid.amount_to_raise,
@@ -188,8 +189,8 @@ class IncreasingDiscountCollateralAuctionStrategy(Strategy):
             return None, None, None
 
         # Always bid our entire balance.  If auction amount_to_raise is less, IncreasingDiscountCollateralAuctionHouse will reduce it.
-        #our_bid = Wad(self.geb.safe_engine.coin_balance(self.our_address)) 
-        our_bid = Wad(bid.amount_to_raise) + Wad(1)
+        our_bid = Wad(self.geb.safe_engine.coin_balance(self.our_address)) 
+        #our_bid = Wad(bid.amount_to_raise) + Wad(1)
         if our_bid <= self.collateral_auction_house.minimum_bid():
             self.logger.info(f"Our system coin balance is less than IncreasingDiscountCollateralAuctionHouse.minimum_bid(). Not bidding")
             return None, None, None
@@ -197,7 +198,7 @@ class IncreasingDiscountCollateralAuctionStrategy(Strategy):
         approximate_collateral, our_adjusted_bid = self.collateral_auction_house.get_approximate_collateral_bought(id, our_bid)
 
         if approximate_collateral == Wad(0):
-            self.logger.info(f"Approximate collateral bought for auction {id} would be Wad(0). Not bidding")
+            self.logger.info(f"Using {our_bid=}, approximate collateral bought for auction {id} would be Wad(0). Not bidding")
             return None, None, None
         our_approximate_price = our_adjusted_bid/approximate_collateral
 

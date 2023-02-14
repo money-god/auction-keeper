@@ -6,4 +6,4 @@
 	url = https://github.com/reflexer-labs/pyexchange.git
 [submodule "lib/pyflex"]
 	path = lib/pyflex
-	url = https://github.com/reflexer-labs/pyflex.git
+	url = https://github.com/money-god/pyflex.git
