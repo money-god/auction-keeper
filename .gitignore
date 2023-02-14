@@ -11,3 +11,5 @@ _virtualenv
 tests/logs
 *.csv
 coverage.*
+
+my_run_auction_keeper.sh
